@@ -65,27 +65,6 @@ body:
     validations:
       required: false
 
-  - type: dropdown
-    id: targetframework
-    attributes:
-      label: "Target Framework / .NET"
-      description: "Default preference is net9.0. If fixing requires upgrading repo TFM, warn and wait for approval."
-      options:
-        - "Keep current repo target framework"
-        - "net9.0 (preferred default)"
-        - "Other (specify below)"
-    validations:
-      required: true
-
-  - type: checkboxes
-    id: tfm_upgrade_gate
-    attributes:
-      label: ".NET Upgrade Gate"
-      description: "If bugfix requires changing TargetFramework, the agent must warn and wait for approval."
-      options:
-        - label: "If a TFM upgrade is required, warn first and wait for explicit approval (GO) before upgrading."
-          required: true
-
   - type: textarea
     id: environment
     attributes:
@@ -98,37 +77,3 @@ body:
         - Configuration (no secrets):
     validations:
       required: false
-
-  - type: input
-    id: depends_on
-    attributes:
-      label: "Depends on"
-      description: 'Link related issues/PRs (e.g. "#123", URL).'
-      placeholder: "#123"
-    validations:
-      required: false
-
-  - type: input
-    id: blocked_by
-    attributes:
-      label: "Blocked by"
-      description: 'Link blockers (e.g. "#456", URL).'
-      placeholder: "#456"
-    validations:
-      required: false
-
-  - type: textarea
-    id: test_expectations
-    attributes:
-      label: "Test expectations"
-      description: "What automated + functional tests should confirm the fix?"
-      placeholder: |
-        Automated:
-        - Unit test for ...
-        - Regression test for ...
-
-        Functional / Manual:
-        1) ...
-        Expected: ...
-    validations:
-      required: true
