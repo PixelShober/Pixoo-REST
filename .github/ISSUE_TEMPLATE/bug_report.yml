@@ -1,0 +1,134 @@
+name: "Bug Report"
+description: "Report a defect with reproducible steps"
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please provide enough detail for a fast fix.
+        ⚠️ Do not include secrets (PATs, tokens, credentials) in this issue.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: "Preflight"
+      options:
+        - label: "I searched existing open/closed issues to avoid duplicates."
+          required: true
+        - label: "I confirm I did not include any secrets (tokens, passwords, private URLs)."
+          required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: "Summary"
+      description: "What is broken?"
+      placeholder: "Short description of the bug..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: "Reproduction steps"
+      description: "Reproducible steps. If possible, include minimal sample data."
+      placeholder: |
+        1) ...
+        2) ...
+        3) ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected result"
+      placeholder: "What should happen?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Actual result"
+      placeholder: "What actually happens? Include exact error messages."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs / Screenshots"
+      description: "Paste relevant logs (redact secrets). Screenshots are fine."
+      placeholder: "Logs, stack traces, screenshots..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: targetframework
+    attributes:
+      label: "Target Framework / .NET"
+      description: "Default preference is net9.0. If fixing requires upgrading repo TFM, warn and wait for approval."
+      options:
+        - "Keep current repo target framework"
+        - "net9.0 (preferred default)"
+        - "Other (specify below)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: tfm_upgrade_gate
+    attributes:
+      label: ".NET Upgrade Gate"
+      description: "If bugfix requires changing TargetFramework, the agent must warn and wait for approval."
+      options:
+        - label: "If a TFM upgrade is required, warn first and wait for explicit approval (GO) before upgrading."
+          required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: "Environment"
+      description: "Where did it happen?"
+      placeholder: |
+        - OS:
+        - App/Service:
+        - Version/Commit:
+        - Configuration (no secrets):
+    validations:
+      required: false
+
+  - type: input
+    id: depends_on
+    attributes:
+      label: "Depends on"
+      description: 'Link related issues/PRs (e.g. "#123", URL).'
+      placeholder: "#123"
+    validations:
+      required: false
+
+  - type: input
+    id: blocked_by
+    attributes:
+      label: "Blocked by"
+      description: 'Link blockers (e.g. "#456", URL).'
+      placeholder: "#456"
+    validations:
+      required: false
+
+  - type: textarea
+    id: test_expectations
+    attributes:
+      label: "Test expectations"
+      description: "What automated + functional tests should confirm the fix?"
+      placeholder: |
+        Automated:
+        - Unit test for ...
+        - Regression test for ...
+
+        Functional / Manual:
+        1) ...
+        Expected: ...
+    validations:
+      required: true

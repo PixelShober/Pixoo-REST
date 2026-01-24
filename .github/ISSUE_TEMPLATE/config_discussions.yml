@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "Questions / Support"
+    url: "https://github.com/<OWNER>/<REPO>/discussions"
+    about: "Use Discussions for questions. Use Issues for actionable work items only."

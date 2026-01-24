@@ -1,0 +1,146 @@
+name: "Feature Request"
+description: "Propose a new feature or improvement"
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the request! Please fill this out so implementation can start quickly.
+        ⚠️ Do not include secrets (PATs, tokens, credentials) in this issue.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: "Preflight"
+      options:
+        - label: "I searched existing open/closed issues to avoid duplicates."
+          required: true
+        - label: "I confirm I did not include any secrets (tokens, passwords, private URLs)."
+          required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: "Goal / Problem statement"
+      description: "What problem are we solving? Why is it important?"
+      placeholder: "As a <user>, I want <capability> so that <benefit>..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Acceptance Criteria"
+      description: "Bullet list of outcomes that must be true for this to be done."
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: "Scope"
+      description: "In scope / out of scope to avoid surprise work."
+      placeholder: |
+        In scope:
+        - ...
+
+        Out of scope:
+        - ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: "Constraints / Non-functional requirements"
+      description: "Performance, security, compatibility, logging, architecture constraints, etc."
+      placeholder: |
+        - Performance:
+        - Security:
+        - Compatibility:
+        - Logging/Observability:
+        - Architecture:
+    validations:
+      required: false
+
+  - type: dropdown
+    id: targetframework
+    attributes:
+      label: "Target Framework / .NET"
+      description: "Default preference is net9.0. If the repo currently targets an older TFM, upgrades must be approved."
+      options:
+        - "Keep current repo target framework"
+        - "net9.0 (preferred default)"
+        - "Other (specify in notes)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: tfm_upgrade_gate
+    attributes:
+      label: ".NET Upgrade Gate"
+      description: "If implementation requires changing TargetFramework, the agent must warn and wait for approval."
+      options:
+        - label: "If a TFM upgrade is required, warn first and wait for explicit approval (GO) before upgrading."
+          required: true
+
+  - type: input
+    id: depends_on
+    attributes:
+      label: "Depends on"
+      description: 'Link related issues/PRs (e.g. "#123", URL).'
+      placeholder: "#123"
+    validations:
+      required: false
+
+  - type: input
+    id: blocked_by
+    attributes:
+      label: "Blocked by"
+      description: 'Link blockers (e.g. "#456", URL).'
+      placeholder: "#456"
+    validations:
+      required: false
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: "Checklist / Tasks (Tracking Issue style)"
+      description: "Use this if the feature will be delivered in steps."
+      placeholder: |
+        - [ ] Task 1
+        - [ ] Task 2
+        - [ ] Task 3
+    validations:
+      required: false
+
+  - type: textarea
+    id: test_expectations
+    attributes:
+      label: "Test expectations"
+      description: "What tests are expected? Unit/integration, plus any manual/functional steps."
+      placeholder: |
+        Automated:
+        - Unit tests for ...
+        - Integration tests for ...
+
+        Functional / Manual:
+        1) ...
+        2) ...
+        Expected: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Notes / Links / Mockups"
+      description: "Anything else that helps implementation (screenshots/logs ok, NO secrets)."
+      placeholder: "Links, screenshots, references..."
+    validations:
+      required: false
