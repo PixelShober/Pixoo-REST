@@ -144,7 +144,7 @@ PIXOO_REST_DEBUG: true
 
 The API is available at: `http://homeassistant.local:5000`
 
-Interactive Swagger documentation: `http://homeassistant.local:5000`
+Interactive Swagger documentation: `http://homeassistant.local:5000/docs`
 
 ### Authentication
 
@@ -385,7 +385,7 @@ automation:
 **Solutions:**
 1. Verify the add-on is running (check logs)
 2. Check the correct port (5000)
-3. Try accessing Swagger UI: `http://homeassistant.local:5000`
+3. Try accessing Swagger UI: `http://homeassistant.local:5000/docs`
 4. Restart the add-on
 
 ### Images Not Displaying

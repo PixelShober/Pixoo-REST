@@ -67,4 +67,4 @@ else
 fi
 
 # shellcheck disable=SC2086
-exec uvicorn pixoo_rest.app:app ${UVICORN_OPTS}
+exec uvicorn pixoo_rest_entrypoint:app ${UVICORN_OPTS}

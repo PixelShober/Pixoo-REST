@@ -18,7 +18,7 @@ This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, a
 
 - 🔍 **Automatic Device Discovery** - Finds your Pixoo device on the local network automatically
 - 🎨 **Full API Control** - 50+ endpoints for images, text, animations, and more
-- 📱 **Swagger UI** - Interactive API documentation at `http://[HOST]:5000`
+- 📱 **Swagger UI** - Interactive API documentation at `http://[HOST]:5000/docs`
 - 🏠 **Home Assistant Integration** - Easy REST commands and automations
 - 🖼️ **Image Support** - Display custom images, GIFs, and animations
 - ⏱️ **Timers & Countdowns** - Built-in timer and countdown functionality
@@ -38,7 +38,7 @@ This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, a
 
 4. Start the add-on
 
-5. Access the Swagger UI at `http://homeassistant.local:5000`
+5. Access the Swagger UI at `http://homeassistant.local:5000/docs`
 
 ## Configuration
 
@@ -116,7 +116,7 @@ See [DOCS.md](DOCS.md) for complete documentation and more examples.
 
 Interactive API documentation is available via Swagger UI at:
 ```
-http://[HOST]:5000
+http://[HOST]:5000/docs
 ```
 
 For detailed information about all available endpoints, see [AGENTS.md](../AGENTS.md).
