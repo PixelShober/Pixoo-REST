@@ -33,6 +33,10 @@ async def app(scope, receive, send):
             scope["root_path"] = root_path
 
         path = scope.get("path", "")
+        if path.startswith("//"):
+            scope = dict(scope)
+            scope["path"] = f"/{path.lstrip('/')}"
+            path = scope["path"]
         if path in ("", "/"):
             response = RedirectResponse(url="docs")
             await response(scope, receive, send)

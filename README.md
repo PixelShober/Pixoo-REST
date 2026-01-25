@@ -120,5 +120,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [license-shield]: https://img.shields.io/github/license/kmplngj/ha-addons.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2025.svg
-[pixoo-version-shield]: https://img.shields.io/badge/version-2.0.2-blue.svg
+[pixoo-version-shield]: https://img.shields.io/badge/version-2.0.3-blue.svg
 [pixoo-changelog]: pixoo-rest/CHANGELOG.md

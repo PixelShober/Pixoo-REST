@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2026-01-25
+
+### Fixed
+- Normalize double-slash ingress paths so `/docs` resolves under Home Assistant UI
+- Ingress entry uses `docs` (no leading slash) to avoid `//docs` requests
+
 ## [2.0.2] - 2026-01-25
 
 ### Added
