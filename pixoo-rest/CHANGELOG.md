@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.2] - 2026-01-25
+
+### Added
+- Add ingress-aware Swagger UI loading so `/openapi.json` resolves under Ingress
+
+### Changed
+- Ingress UI button now opens `/docs`
+
 ## [2.0.1] - 2026-01-25
 
 ### Added
