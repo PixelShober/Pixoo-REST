@@ -1,5 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
-ARG BUILD_FROM
+ARG BUILD_ARCH=amd64
+ARG BUILD_FROM=ghcr.io/home-assistant/${BUILD_ARCH}-base-python:3.13-alpine3.20
 FROM ${BUILD_FROM}
 
 # Build arguments
@@ -38,7 +39,7 @@ RUN pip3 install --no-cache-dir --upgrade pip \
 
 # Clone pixoo-rest application (modernized version)
 RUN apk add --no-cache git && \
-    git clone --depth 1 --branch master \
+    git clone --depth 1 --branch main \
     https://github.com/PixelShober/pixoo-rest.git /tmp/pixoo-rest && \
     cp -r /tmp/pixoo-rest/src/pixoo_rest /app/ && \
     rm -rf /tmp/pixoo-rest && \

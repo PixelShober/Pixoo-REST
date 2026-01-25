@@ -142,5 +142,5 @@ MIT License - see [LICENSE](../LICENSE) for details.
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [license-shield]: https://img.shields.io/github/license/PixelShober/Pixoo-REST.svg
-[release-shield]: https://img.shields.io/badge/version-2.0.5-blue.svg
-[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.5
+[release-shield]: https://img.shields.io/badge/version-2.0.6-blue.svg
+[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.6
