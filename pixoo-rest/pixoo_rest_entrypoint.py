@@ -2,9 +2,12 @@ from fastapi.responses import RedirectResponse
 from pixoo_rest.app import app as pixoo_app
 
 
-@pixoo_app.get("/", include_in_schema=False)
-async def root() -> RedirectResponse:
-    return RedirectResponse(url="/docs")
+async def app(scope, receive, send):
+    if scope.get("type") == "http":
+        path = scope.get("path", "")
+        if path in ("", "/"):
+            response = RedirectResponse(url="docs")
+            await response(scope, receive, send)
+            return
 
-
-app = pixoo_app
+    await pixoo_app(scope, receive, send)

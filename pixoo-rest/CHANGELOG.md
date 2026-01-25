@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2026-01-25
+
+### Added
+- Redirect the root URL to Swagger UI so ingress and the Web UI button land on `/docs`
+
+### Changed
+- Web UI button now points to `/docs`
+- Updated documentation to reference the `/docs` Swagger path
+
+### Fixed
+- Run under s6 init in Home Assistant so `/run/s6/container_environment` exists
+
 ## [2.0.0] - 2025-11-10
 
 ### Added
