@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.5] - 2026-01-25
+
+### Changed
+- Build now pulls pixoo-rest from PixelShober fork
+- Removed codenotary signer block
+
 ## [2.0.4] - 2026-01-25
 
 ### Changed
