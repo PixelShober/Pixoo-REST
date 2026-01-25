@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.4] - 2026-01-25
+
+### Changed
+- Ingress disabled so the Web UI button opens the external Swagger URL in a new tab
+- Repository links updated to point to PixelShober/Pixoo-REST
+
 ## [2.0.3] - 2026-01-25
 
 ### Fixed

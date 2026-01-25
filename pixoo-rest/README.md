@@ -29,7 +29,7 @@ This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, a
 
 1. Add this repository to your Home Assistant add-on store:
    ```
-   https://github.com/kmplngj/ha-addons
+   https://github.com/PixelShober/Pixoo-REST
    ```
 
 2. Install the "Pixoo REST" add-on
@@ -123,7 +123,7 @@ For detailed information about all available endpoints, see [AGENTS.md](../AGENT
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/kmplngj/ha-addons/issues)
+- **Issues:** [GitHub Issues](https://github.com/PixelShober/Pixoo-REST/issues)
 - **Upstream Project:** [pixoo-rest](https://github.com/4ch1m/pixoo-rest)
 - **Pixoo Library:** [pixoo](https://github.com/SomethingWithComputers/pixoo)
 
@@ -141,6 +141,6 @@ MIT License - see [LICENSE](../LICENSE) for details.
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
-[license-shield]: https://img.shields.io/github/license/kmplngj/ha-addons.svg
-[release-shield]: https://img.shields.io/badge/version-0.1.0-blue.svg
-[release]: https://github.com/kmplngj/ha-addons/releases/tag/v0.1.0
+[license-shield]: https://img.shields.io/github/license/PixelShober/Pixoo-REST.svg
+[release-shield]: https://img.shields.io/badge/version-2.0.4-blue.svg
+[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.4
