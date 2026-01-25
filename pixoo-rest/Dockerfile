@@ -65,5 +65,6 @@ LABEL \
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl --fail --silent http://localhost:5000/health || exit 1
 
-# Entrypoint (handles both HA and standalone modes)
-ENTRYPOINT ["/entrypoint.sh"]
+# Entrypoint (s6 overlay) + command wrapper for HA/standalone modes
+ENTRYPOINT ["/init"]
+CMD ["/entrypoint.sh"]

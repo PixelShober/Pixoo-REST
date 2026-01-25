@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
 set -e
 
 # Standalone Docker entrypoint for pixoo-rest
@@ -10,7 +10,7 @@ echo "======================================"
 echo ""
 
 # Check if running in Home Assistant Supervisor
-if [ -n "${SUPERVISOR_TOKEN}" ]; then
+if [ -n "${SUPERVISOR_TOKEN}" ] || [ -f /run/s6/container_environment/SUPERVISOR_TOKEN ] || [ -f /data/options.json ]; then
     echo "Running in Home Assistant mode, using run.sh..."
     exec /run.sh
 fi
