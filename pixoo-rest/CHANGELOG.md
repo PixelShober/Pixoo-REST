@@ -2,16 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.7] - 2026-01-25
+
+### Fixed
+- Restore upstream pixoo-rest clone (kmplngj/pixoo-rest, master) so builds include `/src/pixoo_rest`
+
 ## [2.0.6] - 2026-01-25
 
 ### Fixed
 - Provide a safe default for BUILD_FROM to allow local builds without extra args
-- Clone the PixelShober fork from the main branch to avoid git clone failures
 
 ## [2.0.5] - 2026-01-25
 
 ### Changed
-- Build now pulls pixoo-rest from PixelShober fork
 - Removed codenotary signer block
 
 ## [2.0.4] - 2026-01-25
