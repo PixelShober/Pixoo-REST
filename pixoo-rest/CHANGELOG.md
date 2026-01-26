@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.10] - 2026-01-26
+
+### Fixed
+- Ensure shell scripts use LF line endings to avoid `bash` exec errors on Linux hosts
+
 ## [2.0.9] - 2026-01-26
 
 ### Fixed
