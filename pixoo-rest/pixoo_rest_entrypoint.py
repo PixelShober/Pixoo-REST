@@ -1,10 +1,11 @@
-"""FastAPI entrypoint for Pixoo REST with Time Gate support."""
+"""FastAPI entrypoint for Pixoo REST with Time Gate support and root redirect."""
 
 import os
 import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from pixoo import Pixoo
 
 from pixoo_rest import __version__, utils
@@ -23,6 +24,25 @@ def _normalize_device_type(value: str | None) -> str:
     if normalized == "auto":
         return "auto"
     return "pixoo"
+
+
+def _root_path_from_headers(headers):
+    for key in (
+        "x-ingress-path",
+        "x-forwarded-prefix",
+        "x-forwarded-path",
+        "x-script-name",
+    ):
+        value = headers.get(key)
+        if not value:
+            continue
+        value = value.split(",")[0].strip().rstrip("/")
+        if not value:
+            continue
+        if not value.startswith("/"):
+            value = f"/{value}"
+        return value
+    return ""
 
 
 @asynccontextmanager
@@ -62,7 +82,7 @@ async def lifespan(app: FastAPI):
 
 
 # Create FastAPI app
-app = FastAPI(
+pixoo_app = FastAPI(
     title="Pixoo REST API",
     description="A modern async RESTful API to interact with Wi-Fi enabled Divoom Pixoo devices",
     version=__version__,
@@ -70,22 +90,22 @@ app = FastAPI(
 )
 
 # Include routers
-app.include_router(draw.router)
-app.include_router(send.router)
-app.include_router(set_router.router)
-app.include_router(image.router)
-app.include_router(download.router)
-app.include_router(divoom.router)
-app.include_router(timegate_router)
+pixoo_app.include_router(draw.router)
+pixoo_app.include_router(send.router)
+pixoo_app.include_router(set_router.router)
+pixoo_app.include_router(image.router)
+pixoo_app.include_router(download.router)
+pixoo_app.include_router(divoom.router)
+pixoo_app.include_router(timegate_router)
 
 
-@app.get("/health", response_model=HealthCheckResponse)
+@pixoo_app.get("/health", response_model=HealthCheckResponse)
 async def health_check() -> HealthCheckResponse:
     """Health check endpoint."""
     return HealthCheckResponse(status="healthy", pixoo_host=settings.pixoo_host)
 
 
-@app.get("/", response_model=RootResponse)
+@pixoo_app.get("/", response_model=RootResponse)
 async def root() -> RootResponse:
     """Root endpoint with API information."""
     return RootResponse(
@@ -96,3 +116,27 @@ async def root() -> RootResponse:
         redoc="/redoc",
         openapi="/openapi.json",
     )
+
+
+async def app(scope, receive, send):
+    if scope.get("type") == "http":
+        headers = {
+            key.decode("latin1").lower(): value.decode("latin1")
+            for key, value in scope.get("headers", [])
+        }
+        root_path = _root_path_from_headers(headers)
+        if root_path:
+            scope = dict(scope)
+            scope["root_path"] = root_path
+
+        path = scope.get("path", "")
+        if path.startswith("//"):
+            scope = dict(scope)
+            scope["path"] = f"/{path.lstrip('/')}"
+            path = scope["path"]
+        if path in ("", "/"):
+            response = RedirectResponse(url="docs")
+            await response(scope, receive, send)
+            return
+
+    await pixoo_app(scope, receive, send)

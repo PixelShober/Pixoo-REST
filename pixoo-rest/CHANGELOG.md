@@ -2,14 +2,67 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.1] - 2026-01-26
+## [2.0.8] - 2026-01-26
 
 ### Added
 - Time Gate device type support with auto-detection and manual override
-- Time Gate endpoints for SendHttpGif, SendHttpText, PlayGif, brightness, and command passthrough
+- Time Gate endpoints for SendHttpGif, SendHttpText, PlayGif, brightness, reset GIF ID, and command passthrough
 
 ### Changed
 - Added 128 as a supported screen size for Time Gate devices
+- Web UI and root redirect now consistently point to `/docs`
+
+### Fixed
+- Run under s6 init in Home Assistant so `/run/s6/container_environment` exists
+- Provide a safe default for BUILD_FROM to allow local builds without extra args
+- Restore upstream pixoo-rest clone (kmplngj/pixoo-rest, master) so builds include `/src/pixoo_rest`
+
+## [2.0.7] - 2026-01-25
+
+### Fixed
+- Restore upstream pixoo-rest clone (kmplngj/pixoo-rest, master) so builds include `/src/pixoo_rest`
+
+## [2.0.6] - 2026-01-25
+
+### Fixed
+- Provide a safe default for BUILD_FROM to allow local builds without extra args
+
+## [2.0.5] - 2026-01-25
+
+### Changed
+- Removed codenotary signer block
+
+## [2.0.4] - 2026-01-25
+
+### Changed
+- Ingress disabled so the Web UI button opens the external Swagger URL in a new tab
+- Repository links updated to point to PixelShober/Pixoo-REST
+
+## [2.0.3] - 2026-01-25
+
+### Fixed
+- Normalize double-slash ingress paths so `/docs` resolves under Home Assistant UI
+- Ingress entry uses `docs` (no leading slash) to avoid `//docs` requests
+
+## [2.0.2] - 2026-01-25
+
+### Added
+- Add ingress-aware Swagger UI loading so `/openapi.json` resolves under Ingress
+
+### Changed
+- Ingress UI button now opens `/docs`
+
+## [2.0.1] - 2026-01-25
+
+### Added
+- Redirect the root URL to Swagger UI so ingress and the Web UI button land on `/docs`
+
+### Changed
+- Web UI button now points to `/docs`
+- Updated documentation to reference the `/docs` Swagger path
+
+### Fixed
+- Run under s6 init in Home Assistant so `/run/s6/container_environment` exists
 
 ## [2.0.0] - 2025-11-10
 

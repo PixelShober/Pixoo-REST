@@ -8,7 +8,7 @@
 ![Supports armv7 Architecture][armv7-shield]
 ![Supports i386 Architecture][i386-shield]
 
-RESTful API to easily interact with Wi-Fi enabled Divoom Pixoo LED displays, including automatic device discovery and seamless Home Assistant integration.
+RESTful API to easily interact with Wi-Fi enabled Divoom Pixoo and Time Gate displays, including automatic device discovery and seamless Home Assistant integration.
 
 ## About
 
@@ -18,7 +18,7 @@ This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, a
 
 - 🔍 **Automatic Device Discovery** - Finds your Pixoo device on the local network automatically
 - 🎨 **Full API Control** - 50+ endpoints for images, text, animations, and more
-- 📱 **Swagger UI** - Interactive API documentation at `http://[HOST]:5000`
+- 📱 **Swagger UI** - Interactive API documentation at `http://[HOST]:5000/docs#/`
 - 🏠 **Home Assistant Integration** - Easy REST commands and automations
 - 🖼️ **Image Support** - Display custom images, GIFs, and animations
 - ⏱️ **Timers & Countdowns** - Built-in timer and countdown functionality
@@ -30,7 +30,7 @@ This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, a
 
 1. Add this repository to your Home Assistant add-on store:
    ```
-   https://github.com/kmplngj/ha-addons
+   https://github.com/PixelShober/Pixoo-REST
    ```
 
 2. Install the "Pixoo REST" add-on
@@ -39,7 +39,7 @@ This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, a
 
 4. Start the add-on
 
-5. Access the Swagger UI at `http://homeassistant.local:5000`
+5. Access the Swagger UI at `http://homeassistant.local:5000/docs#/`
 
 ## Configuration
 
@@ -145,14 +145,14 @@ See [DOCS.md](DOCS.md) for complete documentation and more examples.
 
 Interactive API documentation is available via Swagger UI at:
 ```
-http://[HOST]:5000
+http://[HOST]:5000/docs#/
 ```
 
 For detailed information about all available endpoints, see [AGENTS.md](../AGENTS.md).
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/kmplngj/ha-addons/issues)
+- **Issues:** [GitHub Issues](https://github.com/PixelShober/Pixoo-REST/issues)
 - **Upstream Project:** [pixoo-rest](https://github.com/4ch1m/pixoo-rest)
 - **Pixoo Library:** [pixoo](https://github.com/SomethingWithComputers/pixoo)
 
@@ -170,6 +170,6 @@ MIT License - see [LICENSE](../LICENSE) for details.
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
-[license-shield]: https://img.shields.io/github/license/kmplngj/ha-addons.svg
-[release-shield]: https://img.shields.io/badge/version-2.0.1-blue.svg
-[release]: https://github.com/kmplngj/ha-addons/releases/tag/v2.0.1
+[license-shield]: https://img.shields.io/github/license/PixelShober/Pixoo-REST.svg
+[release-shield]: https://img.shields.io/badge/version-2.0.8-blue.svg
+[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.8

@@ -1,4 +1,4 @@
-# Home Assistant Add-ons by kmplngj
+# Home Assistant Add-ons by PixelShober
 
 [![License][license-shield]](LICENSE)
 ![Project Maintenance][maintenance-shield]
@@ -14,7 +14,7 @@ Add this repository to your Home Assistant instance:
 3. Select **Repositories**
 4. Add this repository URL:
    ```
-   https://github.com/kmplngj/ha-addons
+   https://github.com/PixelShober/Pixoo-REST
    ```
 5. Click **Add**
 6. Refresh the add-on store
@@ -57,8 +57,8 @@ Want to run Pixoo REST outside of Home Assistant? Use Docker Compose:
 
 ```bash
 # Clone repository
-git clone https://github.com/kmplngj/ha-addons.git
-cd ha-addons
+git clone https://github.com/PixelShober/Pixoo-REST.git
+cd Pixoo-REST
 
 # Configure
 cp .env.example .env
@@ -76,8 +76,8 @@ docker compose up -d
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/kmplngj/ha-addons/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/kmplngj/ha-addons/discussions)
+- **Issues:** [GitHub Issues](https://github.com/PixelShober/Pixoo-REST/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/PixelShober/Pixoo-REST/discussions)
 
 ## Contributing
 
@@ -112,14 +112,14 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Maintained by [@kmplngj](https://github.com/kmplngj)**
+**Maintained by [@PixelShober](https://github.com/PixelShober)**
 
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
-[license-shield]: https://img.shields.io/github/license/kmplngj/ha-addons.svg
+[license-shield]: https://img.shields.io/github/license/PixelShober/Pixoo-REST.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2025.svg
-[pixoo-version-shield]: https://img.shields.io/badge/version-2.0.1-blue.svg
+[pixoo-version-shield]: https://img.shields.io/badge/version-2.0.8-blue.svg
 [pixoo-changelog]: pixoo-rest/CHANGELOG.md

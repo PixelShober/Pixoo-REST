@@ -22,4 +22,4 @@ configuration:
     description: Enable detailed debug logging for the REST API server. Useful for troubleshooting API requests and responses.
 
 network:
-  5000/tcp: RESTful API and Swagger UI endpoint (accessible externally for automations and scripts)
+  5000/tcp: RESTful API endpoint (Swagger UI at /docs#/, accessible externally for automations and scripts)

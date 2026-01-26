@@ -1,5 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
-ARG BUILD_FROM
+ARG BUILD_ARCH=amd64
+ARG BUILD_FROM=ghcr.io/home-assistant/${BUILD_ARCH}-base-python:3.13-alpine3.20
 FROM ${BUILD_FROM}
 
 # Build arguments
@@ -66,5 +67,6 @@ LABEL \
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl --fail --silent http://localhost:5000/health || exit 1
 
-# Entrypoint (handles both HA and standalone modes)
-ENTRYPOINT ["/entrypoint.sh"]
+# Entrypoint (s6 overlay) + command wrapper for HA/standalone modes
+ENTRYPOINT ["/init"]
+CMD ["/entrypoint.sh"]

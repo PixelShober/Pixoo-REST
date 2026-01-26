@@ -32,7 +32,7 @@ Add this repository to your Home Assistant instance:
 1. Go to **Settings** → **Add-ons** → **Add-on Store**
 2. Click the three dots (⋮) in the top right
 3. Select **Repositories**
-4. Add: `https://github.com/kmplngj/ha-addons`
+4. Add: `https://github.com/PixelShober/Pixoo-REST`
 5. Click **Add**
 
 ### Step 2: Install Add-on
@@ -164,7 +164,7 @@ PIXOO_REST_DEBUG: true
 
 The API is available at: `http://homeassistant.local:5000`
 
-Interactive Swagger documentation: `http://homeassistant.local:5000`
+Interactive Swagger documentation: `http://homeassistant.local:5000/docs#/`
 
 ### Authentication
 
@@ -421,7 +421,7 @@ automation:
 **Solutions:**
 1. Verify the add-on is running (check logs)
 2. Check the correct port (5000)
-3. Try accessing Swagger UI: `http://homeassistant.local:5000`
+3. Try accessing Swagger UI: `http://homeassistant.local:5000/docs#/`
 4. Restart the add-on
 
 ### Images Not Displaying
@@ -531,7 +531,7 @@ version: '3.8'
 
 services:
   pixoo-rest:
-    image: ghcr.io/kmplngj/pixoo-rest:latest
+    image: ghcr.io/pixelshober/pixoo-rest:latest
     ports:
       - "5000:5000"
     environment:
@@ -560,7 +560,7 @@ For best performance:
 
 ## Support and Resources
 
-- **Add-on Issues:** [GitHub Issues](https://github.com/kmplngj/ha-addons/issues)
+- **Add-on Issues:** [GitHub Issues](https://github.com/PixelShober/Pixoo-REST/issues)
 - **Upstream Project:** [pixoo-rest](https://github.com/4ch1m/pixoo-rest)
 - **Pixoo Library:** [pixoo](https://github.com/SomethingWithComputers/pixoo)
 - **API Reference:** See [AGENTS.md](../AGENTS.md)
