@@ -16,6 +16,7 @@ ENV LANG=C.UTF-8 \
 
 # Install system dependencies
 RUN apk add --no-cache \
+    bash \
     curl \
     jq \
     jpeg-dev \

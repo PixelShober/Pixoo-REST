@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.9] - 2026-01-26
+
+### Fixed
+- Install bash in the add-on image so the s6 entrypoint can execute `bash`
+
 ## [2.0.8] - 2026-01-26
 
 ### Added
