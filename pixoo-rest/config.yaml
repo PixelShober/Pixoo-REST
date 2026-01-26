@@ -1,7 +1,7 @@
 name: Pixoo REST
-version: "2.0.0"
+version: "2.0.1"
 slug: pixoo-rest
-description: RESTful API for Divoom Pixoo LED displays with automatic discovery and Home Assistant integration
+description: RESTful API for Divoom Pixoo and Time Gate displays with automatic discovery and Home Assistant integration
 url: https://github.com/kmplngj/ha-addons/tree/main/pixoo-rest
 arch:
   - aarch64
@@ -33,6 +33,7 @@ apparmor: true
 options:
   PIXOO_HOST_AUTO: true
   PIXOO_HOST: ""
+  PIXOO_DEVICE_TYPE: auto
   PIXOO_DEBUG: false
   PIXOO_SCREEN_SIZE: 64
   PIXOO_CONNECTION_RETRIES: 10
@@ -41,8 +42,9 @@ options:
 schema:
   PIXOO_HOST_AUTO: bool
   PIXOO_HOST: str?
+  PIXOO_DEVICE_TYPE: list(auto|pixoo|time_gate)
   PIXOO_DEBUG: bool
-  PIXOO_SCREEN_SIZE: list(16|32|64)
+  PIXOO_SCREEN_SIZE: list(16|32|64|128)
   PIXOO_CONNECTION_RETRIES: int(1,30)
   PIXOO_REST_DEBUG: bool
 

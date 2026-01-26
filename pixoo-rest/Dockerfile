@@ -47,6 +47,8 @@ RUN apk add --no-cache git && \
 WORKDIR /app
 
 # Copy Home Assistant scripts
+COPY pixoo_rest_entrypoint.py /app/
+COPY pixoo_rest_timegate.py /app/
 COPY run.sh /
 COPY entrypoint.sh /
 RUN chmod a+x /run.sh /entrypoint.sh
@@ -54,7 +56,7 @@ RUN chmod a+x /run.sh /entrypoint.sh
 # Add labels
 LABEL \
     io.hass.name="Pixoo REST" \
-    io.hass.description="RESTful API for Divoom Pixoo LED displays" \
+    io.hass.description="RESTful API for Divoom Pixoo and Time Gate displays" \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version="${BUILD_VERSION}" \

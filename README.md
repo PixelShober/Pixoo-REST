@@ -31,7 +31,7 @@ Add this repository to your Home Assistant instance:
 ![Supports armv7 Architecture][armv7-shield]
 ![Supports i386 Architecture][i386-shield]
 
-RESTful API to control Divoom Pixoo LED displays with automatic device discovery and seamless Home Assistant integration.
+RESTful API to control Divoom Pixoo and Time Gate displays with automatic device discovery and seamless Home Assistant integration.
 
 **Features:**
 - 🔍 Automatic device discovery
@@ -45,6 +45,7 @@ RESTful API to control Divoom Pixoo LED displays with automatic device discovery
 **Quick Start:**
 ```yaml
 PIXOO_HOST_AUTO: true
+PIXOO_DEVICE_TYPE: auto
 PIXOO_SCREEN_SIZE: 64
 ```
 
@@ -120,5 +121,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [license-shield]: https://img.shields.io/github/license/kmplngj/ha-addons.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2025.svg
-[pixoo-version-shield]: https://img.shields.io/badge/version-2.0.0-blue.svg
+[pixoo-version-shield]: https://img.shields.io/badge/version-2.0.1-blue.svg
 [pixoo-changelog]: pixoo-rest/CHANGELOG.md

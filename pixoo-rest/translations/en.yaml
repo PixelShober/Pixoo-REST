@@ -5,12 +5,15 @@ configuration:
   PIXOO_HOST:
     name: Device IP Address
     description: Manual IP address of your Pixoo device (e.g., 192.168.1.100). Only used when automatic discovery is disabled.
+  PIXOO_DEVICE_TYPE:
+    name: Device Type
+    description: Device type detection (auto, pixoo, or time_gate). Auto-detect uses the device name from Divoom discovery.
   PIXOO_DEBUG:
     name: Pixoo Debug Logging
     description: Enable detailed debug logging from the pixoo library for troubleshooting device communication issues.
   PIXOO_SCREEN_SIZE:
     name: Screen Size
-    description: The pixel resolution of your Pixoo device. Choose the size that matches your hardware (16x16, 32x32, or 64x64).
+    description: The pixel resolution of your device. Choose the size that matches your hardware (16x16, 32x32, 64x64, or 128x128 for Time Gate).
   PIXOO_CONNECTION_RETRIES:
     name: Connection Retry Attempts
     description: Number of times to retry connecting to the Pixoo device during startup (1-30). Higher values provide more resilience but longer startup times.

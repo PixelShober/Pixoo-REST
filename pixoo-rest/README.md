@@ -12,7 +12,7 @@ RESTful API to easily interact with Wi-Fi enabled Divoom Pixoo LED displays, inc
 
 ## About
 
-This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, and 64x64 pixel LED displays). It wraps the [pixoo-rest](https://github.com/4ch1m/pixoo-rest) application and integrates it seamlessly into Home Assistant.
+This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, and 64x64) and Time Gate displays. It wraps the [pixoo-rest](https://github.com/4ch1m/pixoo-rest) application and integrates it seamlessly into Home Assistant.
 
 **Features:**
 
@@ -24,6 +24,7 @@ This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, a
 - ⏱️ **Timers & Countdowns** - Built-in timer and countdown functionality
 - 🌡️ **Sensor Data** - Display temperature, humidity, and other sensor values
 - 🎵 **Visualizations** - Sound spectrum analyzer and visualizer effects
+- **Time Gate Support** - Dedicated endpoints for multi-screen Time Gate devices
 
 ## Installation
 
@@ -46,6 +47,7 @@ This add-on provides a REST API to control Divoom Pixoo devices (16x16, 32x32, a
 
 ```yaml
 PIXOO_HOST_AUTO: true
+PIXOO_DEVICE_TYPE: auto
 PIXOO_SCREEN_SIZE: 64
 ```
 
@@ -54,10 +56,20 @@ PIXOO_SCREEN_SIZE: 64
 ```yaml
 PIXOO_HOST_AUTO: false
 PIXOO_HOST: "192.168.1.100"
+PIXOO_DEVICE_TYPE: auto
 PIXOO_SCREEN_SIZE: 64
 PIXOO_DEBUG: false
 PIXOO_CONNECTION_RETRIES: 10
 PIXOO_REST_DEBUG: false
+```
+
+### Time Gate Configuration (Manual)
+
+```yaml
+PIXOO_HOST_AUTO: false
+PIXOO_HOST: "192.168.1.200"
+PIXOO_DEVICE_TYPE: time_gate
+PIXOO_SCREEN_SIZE: 128
 ```
 
 ### Configuration Options
@@ -66,7 +78,8 @@ PIXOO_REST_DEBUG: false
 |--------|------|---------|-------------|
 | `PIXOO_HOST_AUTO` | bool | `true` | Enable automatic device discovery |
 | `PIXOO_HOST` | string | `null` | Manual IP address (required if auto is `false`) |
-| `PIXOO_SCREEN_SIZE` | list | `64` | Screen size: `16`, `32`, or `64` pixels |
+| `PIXOO_DEVICE_TYPE` | list | `auto` | Device type: `auto`, `pixoo`, or `time_gate` |
+| `PIXOO_SCREEN_SIZE` | list | `64` | Screen size: `16`, `32`, `64`, or `128` pixels |
 | `PIXOO_DEBUG` | bool | `false` | Enable debug logging for Pixoo library |
 | `PIXOO_CONNECTION_RETRIES` | int | `10` | Connection retry attempts (1-30) |
 | `PIXOO_REST_DEBUG` | bool | `false` | Enable REST API debug logging |
@@ -93,6 +106,22 @@ curl -X POST http://homeassistant.local:5000/device/image/url \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com/image.jpg"
+  }'
+```
+
+### Time Gate: Send GIF Frame
+
+```bash
+curl -X POST http://homeassistant.local:5000/timegate/send-gif \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lcd_array": [1,1,1,1,1],
+    "pic_num": 1,
+    "pic_width": 128,
+    "pic_offset": 0,
+    "pic_id": 1,
+    "pic_speed": 1000,
+    "pic_data": "<base64-jpg>"
   }'
 ```
 
@@ -142,5 +171,5 @@ MIT License - see [LICENSE](../LICENSE) for details.
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [license-shield]: https://img.shields.io/github/license/kmplngj/ha-addons.svg
-[release-shield]: https://img.shields.io/badge/version-0.1.0-blue.svg
-[release]: https://github.com/kmplngj/ha-addons/releases/tag/v0.1.0
+[release-shield]: https://img.shields.io/badge/version-2.0.1-blue.svg
+[release]: https://github.com/kmplngj/ha-addons/releases/tag/v2.0.1

@@ -14,7 +14,7 @@ Complete documentation for the Pixoo REST Home Assistant add-on.
 
 ## Overview
 
-The Pixoo REST add-on provides a RESTful API to control Divoom Pixoo LED displays (16x16, 32x32, and 64x64 pixels). It enables you to:
+The Pixoo REST add-on provides a RESTful API to control Divoom Pixoo LED displays (16x16, 32x32, and 64x64 pixels) and Time Gate devices. It enables you to:
 
 - Display custom images and GIFs
 - Show text with various fonts and colors
@@ -59,6 +59,7 @@ The simplest configuration uses automatic device discovery:
 
 ```yaml
 PIXOO_HOST_AUTO: true
+PIXOO_DEVICE_TYPE: auto
 PIXOO_SCREEN_SIZE: 64
 ```
 
@@ -69,7 +70,17 @@ If automatic discovery doesn't work, specify the IP address manually:
 ```yaml
 PIXOO_HOST_AUTO: false
 PIXOO_HOST: "192.168.1.100"
+PIXOO_DEVICE_TYPE: auto
 PIXOO_SCREEN_SIZE: 64
+```
+
+### Time Gate Configuration (Manual)
+
+```yaml
+PIXOO_HOST_AUTO: false
+PIXOO_HOST: "192.168.1.200"
+PIXOO_DEVICE_TYPE: time_gate
+PIXOO_SCREEN_SIZE: 128
 ```
 
 ### Complete Configuration Example
@@ -77,6 +88,7 @@ PIXOO_SCREEN_SIZE: 64
 ```yaml
 PIXOO_HOST_AUTO: false
 PIXOO_HOST: "192.168.1.100"
+PIXOO_DEVICE_TYPE: auto
 PIXOO_DEBUG: true
 PIXOO_SCREEN_SIZE: 64
 PIXOO_CONNECTION_RETRIES: 15
@@ -105,16 +117,24 @@ PIXOO_REST_DEBUG: true
 2. Use the Divoom mobile app (Settings → Device Information)
 3. Check Home Assistant's network discovery
 
+#### PIXOO_DEVICE_TYPE
+
+- **Type:** String
+- **Default:** `auto`
+- **Options:** `auto`, `pixoo`, `time_gate`
+- **Description:** Device type selection. Auto-detect uses the Divoom discovery device name.
+
 #### PIXOO_SCREEN_SIZE
 
 - **Type:** Integer
-- **Options:** `16`, `32`, `64`
+- **Options:** `16`, `32`, `64`, `128`
 - **Default:** `64`
-- **Description:** Pixel dimensions of your Pixoo device
+- **Description:** Pixel dimensions of your device
 - **Models:**
   - 16: Pixoo-16
   - 32: Pixoo-32 (rare model)
   - 64: Pixoo-64, Pixoo-Max
+  - 128: Time Gate
 
 #### PIXOO_DEBUG
 
@@ -178,6 +198,22 @@ curl -X POST http://homeassistant.local:5000/device/image/url \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com/image.jpg"
+  }'
+```
+
+#### Time Gate: Send GIF Frame
+
+```bash
+curl -X POST http://homeassistant.local:5000/timegate/send-gif \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lcd_array": [1,1,1,1,1],
+    "pic_num": 1,
+    "pic_width": 128,
+    "pic_offset": 0,
+    "pic_id": 1,
+    "pic_speed": 1000,
+    "pic_data": "<base64-jpg>"
   }'
 ```
 
@@ -407,7 +443,7 @@ automation:
 1. Check add-on logs (click "Log" tab)
 2. Verify configuration is valid YAML
 3. Ensure `PIXOO_HOST` is provided when `PIXOO_HOST_AUTO` is `false`
-4. Check `PIXOO_SCREEN_SIZE` is one of: 16, 32, 64
+4. Check `PIXOO_SCREEN_SIZE` is one of: 16, 32, 64, 128
 5. Try default configuration first
 
 ### Viewing Logs

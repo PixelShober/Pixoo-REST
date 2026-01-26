@@ -16,8 +16,11 @@ if [ -n "${SUPERVISOR_TOKEN}" ]; then
 fi
 
 # Standalone mode - use environment variables directly
+PIXOO_DEVICE_TYPE="${PIXOO_DEVICE_TYPE:-auto}"
+
 echo "Configuration:"
 echo "  PIXOO_HOST: ${PIXOO_HOST:-not set}"
+echo "  PIXOO_DEVICE_TYPE: ${PIXOO_DEVICE_TYPE}"
 echo "  PIXOO_SCREEN_SIZE: ${PIXOO_SCREEN_SIZE:-64}"
 echo "  PIXOO_DEBUG: ${PIXOO_DEBUG:-false}"
 echo "  PIXOO_REST_DEBUG: ${PIXOO_REST_DEBUG:-false}"
@@ -33,9 +36,32 @@ fi
 
 # Export required variables
 export PIXOO_HOST
+export PIXOO_DEVICE_TYPE
 export PIXOO_SCREEN_SIZE="${PIXOO_SCREEN_SIZE:-64}"
 export PIXOO_DEBUG="${PIXOO_DEBUG:-false}"
 export PIXOO_CONNECTION_RETRIES="${PIXOO_CONNECTION_RETRIES:-10}"
+
+if [ "${PIXOO_DEVICE_TYPE}" = "auto" ]; then
+    DISCOVERY_URL="https://app.divoom-gz.com/Device/ReturnSameLANDevice"
+    DETECT_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
+    DEVICE_NAME=$(echo "${DETECT_RESULT}" | jq -r --arg ip "${PIXOO_HOST}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
+
+    if echo "${DEVICE_NAME}" | grep -qiE "time[ _-]?gate"; then
+        PIXOO_DEVICE_TYPE="time_gate"
+    else
+        PIXOO_DEVICE_TYPE="pixoo"
+    fi
+
+    if [ -n "${DEVICE_NAME}" ] && [ "${DEVICE_NAME}" != "null" ]; then
+        echo "Detected device name: ${DEVICE_NAME}"
+    else
+        echo "Could not detect device name; defaulting to ${PIXOO_DEVICE_TYPE}"
+    fi
+
+    echo "Device type set to: ${PIXOO_DEVICE_TYPE}"
+
+    export PIXOO_DEVICE_TYPE
+fi
 
 # Verify app directory exists
 if [ ! -d "/app/pixoo_rest" ]; then
@@ -49,7 +75,7 @@ cd /app || {
     exit 1
 }
 
-echo "Pixoo REST v2.0.0 ready (FastAPI)"
+echo "Pixoo REST v2.0.1 ready (FastAPI)"
 echo ""
 
 # Start Uvicorn server (FastAPI)
@@ -67,4 +93,4 @@ else
 fi
 
 # shellcheck disable=SC2086
-exec uvicorn pixoo_rest.app:app ${UVICORN_OPTS}
+exec uvicorn pixoo_rest_entrypoint:app ${UVICORN_OPTS}

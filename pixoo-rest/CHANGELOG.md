@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2026-01-26
+
+### Added
+- Time Gate device type support with auto-detection and manual override
+- Time Gate endpoints for SendHttpGif, SendHttpText, PlayGif, brightness, and command passthrough
+
+### Changed
+- Added 128 as a supported screen size for Time Gate devices
+
 ## [2.0.0] - 2025-11-10
 
 ### Added

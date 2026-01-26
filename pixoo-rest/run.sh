@@ -6,10 +6,17 @@ set -e
 bashio::log.info "Loading configuration from Home Assistant add-on..."
 
 PIXOO_HOST_AUTO=$(bashio::config 'PIXOO_HOST_AUTO')
+PIXOO_DEVICE_TYPE=$(bashio::config 'PIXOO_DEVICE_TYPE')
 PIXOO_DEBUG=$(bashio::config 'PIXOO_DEBUG')
 PIXOO_SCREEN_SIZE=$(bashio::config 'PIXOO_SCREEN_SIZE')
 PIXOO_CONNECTION_RETRIES=$(bashio::config 'PIXOO_CONNECTION_RETRIES')
 PIXOO_REST_DEBUG=$(bashio::config 'PIXOO_REST_DEBUG')
+
+if [ -z "${PIXOO_DEVICE_TYPE}" ]; then
+    PIXOO_DEVICE_TYPE="auto"
+fi
+
+DISCOVERY_URL="https://app.divoom-gz.com/Device/ReturnSameLANDevice"
 
 # Export environment variables
 export PIXOO_DEBUG
@@ -19,8 +26,7 @@ export PIXOO_CONNECTION_RETRIES
 # Device discovery and validation
 if [ "${PIXOO_HOST_AUTO}" = true ]; then
     bashio::log.info "Starting automatic device discovery..."
-    
-    DISCOVERY_URL="https://app.divoom-gz.com/Device/ReturnSameLANDevice"
+
     DISCOVERY_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
     
     if [ -z "${DISCOVERY_RESULT}" ]; then
@@ -52,16 +58,47 @@ else
     bashio::log.info "Using manually configured device: ${PIXOO_HOST}"
 fi
 
+# Auto-detect device type (Pixoo vs Time Gate)
+if [ "${PIXOO_DEVICE_TYPE}" = "auto" ]; then
+    DEVICE_NAME=""
+
+    if [ -n "${DISCOVERY_RESULT}" ]; then
+        DEVICE_NAME=$(echo "${DISCOVERY_RESULT}" | jq -r --arg ip "${PIXOO_HOST}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
+        if [ -z "${DEVICE_NAME}" ] || [ "${DEVICE_NAME}" = "null" ]; then
+            DEVICE_NAME=$(echo "${DISCOVERY_RESULT}" | jq -r '.DeviceList[0].DeviceName // empty')
+        fi
+    else
+        DETECT_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
+        if [ -n "${DETECT_RESULT}" ]; then
+            DEVICE_NAME=$(echo "${DETECT_RESULT}" | jq -r --arg ip "${PIXOO_HOST}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
+        fi
+    fi
+
+    if echo "${DEVICE_NAME}" | grep -qiE "time[ _-]?gate"; then
+        PIXOO_DEVICE_TYPE="time_gate"
+    else
+        PIXOO_DEVICE_TYPE="pixoo"
+    fi
+
+    if [ -n "${DEVICE_NAME}" ] && [ "${DEVICE_NAME}" != "null" ]; then
+        bashio::log.info "Detected device name: ${DEVICE_NAME}"
+    else
+        bashio::log.warning "Could not detect device name; defaulting to ${PIXOO_DEVICE_TYPE}"
+    fi
+fi
+
 # Validate host format (basic IP validation)
 if ! echo "${PIXOO_HOST}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
     bashio::log.warning "PIXOO_HOST does not appear to be a valid IP address: ${PIXOO_HOST}"
 fi
 
 export PIXOO_HOST
+export PIXOO_DEVICE_TYPE
 
 # Log configuration summary
 bashio::log.info "===== Pixoo REST Configuration ====="
 bashio::log.info "Device IP: ${PIXOO_HOST}"
+bashio::log.info "Device Type: ${PIXOO_DEVICE_TYPE}"
 bashio::log.info "Screen Size: ${PIXOO_SCREEN_SIZE}"
 bashio::log.info "Debug Mode: ${PIXOO_DEBUG}"
 bashio::log.info "Connection Retries: ${PIXOO_CONNECTION_RETRIES}"
@@ -74,8 +111,8 @@ cd /app || {
     exit 1
 }
 
-# pixoo-rest v2.0.0 is already included in the Docker image
-bashio::log.info "Using pixoo-rest v2.0.0 (FastAPI)"
+# pixoo-rest v2.0.1 is already included in the Docker image
+bashio::log.info "Using pixoo-rest v2.0.1 (FastAPI)"
 
 # Set additional environment variables for uvicorn
 export PIXOO_REST_HOST="0.0.0.0"
@@ -95,4 +132,4 @@ else
 fi
 
 # shellcheck disable=SC2086
-exec uvicorn pixoo_rest.app:app ${UVICORN_OPTS}
+exec uvicorn pixoo_rest_entrypoint:app ${UVICORN_OPTS}
