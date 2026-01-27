@@ -1,5 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
-ARG BUILD_FROM
+ARG BUILD_ARCH=amd64
+ARG BUILD_FROM=ghcr.io/home-assistant/${BUILD_ARCH}-base-python:3.13-alpine3.20
 FROM ${BUILD_FROM}
 
 # Build arguments
@@ -15,6 +16,7 @@ ENV LANG=C.UTF-8 \
 
 # Install system dependencies
 RUN apk add --no-cache \
+    bash \
     curl \
     jq \
     jpeg-dev \
@@ -47,6 +49,8 @@ RUN apk add --no-cache git && \
 WORKDIR /app
 
 # Copy Home Assistant scripts
+COPY pixoo_rest_entrypoint.py /app/
+COPY pixoo_rest_timegate.py /app/
 COPY run.sh /
 COPY entrypoint.sh /
 RUN chmod a+x /run.sh /entrypoint.sh
@@ -54,7 +58,7 @@ RUN chmod a+x /run.sh /entrypoint.sh
 # Add labels
 LABEL \
     io.hass.name="Pixoo REST" \
-    io.hass.description="RESTful API for Divoom Pixoo LED displays" \
+    io.hass.description="RESTful API for Divoom Pixoo and Time Gate displays" \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version="${BUILD_VERSION}" \
@@ -64,5 +68,6 @@ LABEL \
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl --fail --silent http://localhost:5000/health || exit 1
 
-# Entrypoint (handles both HA and standalone modes)
-ENTRYPOINT ["/entrypoint.sh"]
+# Entrypoint (s6 overlay) + command wrapper for HA/standalone modes
+ENTRYPOINT ["/init"]
+CMD ["/entrypoint.sh"]

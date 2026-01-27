@@ -14,7 +14,7 @@ Complete documentation for the Pixoo REST Home Assistant add-on.
 
 ## Overview
 
-The Pixoo REST add-on provides a RESTful API to control Divoom Pixoo LED displays (16x16, 32x32, and 64x64 pixels). It enables you to:
+The Pixoo REST add-on provides a RESTful API to control Divoom Pixoo LED displays (16x16, 32x32, and 64x64 pixels) and Time Gate devices. It enables you to:
 
 - Display custom images and GIFs
 - Show text with various fonts and colors
@@ -32,7 +32,7 @@ Add this repository to your Home Assistant instance:
 1. Go to **Settings** → **Add-ons** → **Add-on Store**
 2. Click the three dots (⋮) in the top right
 3. Select **Repositories**
-4. Add: `https://github.com/kmplngj/ha-addons`
+4. Add: `https://github.com/PixelShober/Pixoo-REST`
 5. Click **Add**
 
 ### Step 2: Install Add-on
@@ -59,6 +59,7 @@ The simplest configuration uses automatic device discovery:
 
 ```yaml
 PIXOO_HOST_AUTO: true
+PIXOO_DEVICE_TYPE: auto
 PIXOO_SCREEN_SIZE: 64
 ```
 
@@ -69,7 +70,17 @@ If automatic discovery doesn't work, specify the IP address manually:
 ```yaml
 PIXOO_HOST_AUTO: false
 PIXOO_HOST: "192.168.1.100"
+PIXOO_DEVICE_TYPE: auto
 PIXOO_SCREEN_SIZE: 64
+```
+
+### Time Gate Configuration (Manual)
+
+```yaml
+PIXOO_HOST_AUTO: false
+PIXOO_HOST: "192.168.1.200"
+PIXOO_DEVICE_TYPE: time_gate
+PIXOO_SCREEN_SIZE: 128
 ```
 
 ### Complete Configuration Example
@@ -77,6 +88,7 @@ PIXOO_SCREEN_SIZE: 64
 ```yaml
 PIXOO_HOST_AUTO: false
 PIXOO_HOST: "192.168.1.100"
+PIXOO_DEVICE_TYPE: auto
 PIXOO_DEBUG: true
 PIXOO_SCREEN_SIZE: 64
 PIXOO_CONNECTION_RETRIES: 15
@@ -105,16 +117,24 @@ PIXOO_REST_DEBUG: true
 2. Use the Divoom mobile app (Settings → Device Information)
 3. Check Home Assistant's network discovery
 
+#### PIXOO_DEVICE_TYPE
+
+- **Type:** String
+- **Default:** `auto`
+- **Options:** `auto`, `pixoo`, `time_gate`
+- **Description:** Device type selection. Auto-detect uses the Divoom discovery device name.
+
 #### PIXOO_SCREEN_SIZE
 
 - **Type:** Integer
-- **Options:** `16`, `32`, `64`
+- **Options:** `16`, `32`, `64`, `128`
 - **Default:** `64`
-- **Description:** Pixel dimensions of your Pixoo device
+- **Description:** Pixel dimensions of your device
 - **Models:**
   - 16: Pixoo-16
   - 32: Pixoo-32 (rare model)
   - 64: Pixoo-64, Pixoo-Max
+  - 128: Time Gate
 
 #### PIXOO_DEBUG
 
@@ -144,7 +164,7 @@ PIXOO_REST_DEBUG: true
 
 The API is available at: `http://homeassistant.local:5000`
 
-Interactive Swagger documentation: `http://homeassistant.local:5000`
+Interactive Swagger documentation: `http://homeassistant.local:5000/docs#/`
 
 ### Authentication
 
@@ -178,6 +198,22 @@ curl -X POST http://homeassistant.local:5000/device/image/url \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com/image.jpg"
+  }'
+```
+
+#### Time Gate: Send GIF Frame
+
+```bash
+curl -X POST http://homeassistant.local:5000/timegate/send-gif \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lcd_array": [1,1,1,1,1],
+    "pic_num": 1,
+    "pic_width": 128,
+    "pic_offset": 0,
+    "pic_id": 1,
+    "pic_speed": 1000,
+    "pic_data": "<base64-jpg>"
   }'
 ```
 
@@ -272,7 +308,40 @@ rest_command:
   pixoo_clear:
     url: http://homeassistant.local:5000/device/screen/clear
     method: POST
+  
+  timegate_play_gif:
+    url: http://homeassistant.local:5000/timegate/play-gif
+    method: POST
+    headers:
+      Content-Type: application/json
+    payload: >
+      {
+        "lcd_array": [0,0,0,0,1],
+        "file_name": ["http://f.divoom-gz.com/128_128.gif"]
+      }
+  
+  timegate_send_text:
+    url: http://homeassistant.local:5000/timegate/send-text
+    method: POST
+    headers:
+      Content-Type: application/json
+    payload: >
+      {
+        "lcd_index": 4,
+        "text_id": 1,
+        "x": 0,
+        "y": 40,
+        "direction": 0,
+        "font": 4,
+        "text_width": 56,
+        "text": "{{ text }}",
+        "speed": 10,
+        "color": "#FFFF00",
+        "align": 1
+      }
 ```
+
+Note: Time Gate text requires an active animation layer. Call `timegate_play_gif` first, then `timegate_send_text`.
 
 ### Automation Examples
 
@@ -385,7 +454,7 @@ automation:
 **Solutions:**
 1. Verify the add-on is running (check logs)
 2. Check the correct port (5000)
-3. Try accessing Swagger UI: `http://homeassistant.local:5000`
+3. Try accessing Swagger UI: `http://homeassistant.local:5000/docs#/`
 4. Restart the add-on
 
 ### Images Not Displaying
@@ -407,7 +476,7 @@ automation:
 1. Check add-on logs (click "Log" tab)
 2. Verify configuration is valid YAML
 3. Ensure `PIXOO_HOST` is provided when `PIXOO_HOST_AUTO` is `false`
-4. Check `PIXOO_SCREEN_SIZE` is one of: 16, 32, 64
+4. Check `PIXOO_SCREEN_SIZE` is one of: 16, 32, 64, 128
 5. Try default configuration first
 
 ### Viewing Logs
@@ -495,7 +564,7 @@ version: '3.8'
 
 services:
   pixoo-rest:
-    image: ghcr.io/kmplngj/pixoo-rest:latest
+    image: ghcr.io/pixelshober/pixoo-rest:latest
     ports:
       - "5000:5000"
     environment:
@@ -524,7 +593,7 @@ For best performance:
 
 ## Support and Resources
 
-- **Add-on Issues:** [GitHub Issues](https://github.com/kmplngj/ha-addons/issues)
+- **Add-on Issues:** [GitHub Issues](https://github.com/PixelShober/Pixoo-REST/issues)
 - **Upstream Project:** [pixoo-rest](https://github.com/4ch1m/pixoo-rest)
 - **Pixoo Library:** [pixoo](https://github.com/SomethingWithComputers/pixoo)
 - **API Reference:** See [AGENTS.md](../AGENTS.md)
