@@ -139,6 +139,46 @@ automation:
           text: "{{ states('sensor.living_room_temperature') }}°C"
 ```
 
+### Home Assistant REST Commands (Time Gate)
+
+Add these to your `configuration.yaml` when using a Time Gate device:
+
+```yaml
+rest_command:
+  timegate_play_gif:
+    url: http://homeassistant.local:5000/timegate/play-gif
+    method: POST
+    headers:
+      Content-Type: application/json
+    payload: >
+      {
+        "lcd_array": [0,0,0,0,1],
+        "file_name": ["http://f.divoom-gz.com/128_128.gif"]
+      }
+
+  timegate_send_text:
+    url: http://homeassistant.local:5000/timegate/send-text
+    method: POST
+    headers:
+      Content-Type: application/json
+    payload: >
+      {
+        "lcd_index": 4,
+        "text_id": 1,
+        "x": 0,
+        "y": 40,
+        "direction": 0,
+        "font": 4,
+        "text_width": 56,
+        "text": "{{ text }}",
+        "speed": 10,
+        "color": "#FFFF00",
+        "align": 1
+      }
+```
+
+Note: Time Gate text requires an active animation layer. Call `timegate_play_gif` first, then `timegate_send_text`.
+
 See [DOCS.md](DOCS.md) for complete documentation and more examples.
 
 ## API Documentation
@@ -171,5 +211,5 @@ MIT License - see [LICENSE](../LICENSE) for details.
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [license-shield]: https://img.shields.io/github/license/PixelShober/Pixoo-REST.svg
-[release-shield]: https://img.shields.io/badge/version-2.0.10-blue.svg
-[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.10
+[release-shield]: https://img.shields.io/badge/version-2.0.11-blue.svg
+[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.11
