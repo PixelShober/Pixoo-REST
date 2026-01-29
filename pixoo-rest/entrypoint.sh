@@ -27,10 +27,10 @@ if [ -n "${PIXOO_DEVICES_JSON}" ]; then
     fi
 
     PIXOO_HOST=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].host')
-    PIXOO_DEVICE_TYPE=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].device_type')
-    PIXOO_SCREEN_SIZE=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].screen_size')
-    PIXOO_DEBUG=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].debug')
-    PIXOO_CONNECTION_RETRIES=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].connection_retries')
+    PIXOO_DEVICE_TYPE=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].device_type // "pixoo"')
+    PIXOO_SCREEN_SIZE=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].screen_size // 64')
+    PIXOO_DEBUG=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].debug // false')
+    PIXOO_CONNECTION_RETRIES=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].connection_retries // 10')
 fi
 
 echo "Configuration:"

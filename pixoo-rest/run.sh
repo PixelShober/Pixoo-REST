@@ -16,6 +16,18 @@ if [ -z "${PIXOO_DEVICE_TYPE}" ]; then
     PIXOO_DEVICE_TYPE="auto"
 fi
 
+if [ -z "${PIXOO_SCREEN_SIZE}" ]; then
+    PIXOO_SCREEN_SIZE="64"
+fi
+
+if [ -z "${PIXOO_DEBUG}" ]; then
+    PIXOO_DEBUG="false"
+fi
+
+if [ -z "${PIXOO_CONNECTION_RETRIES}" ]; then
+    PIXOO_CONNECTION_RETRIES="10"
+fi
+
 DISCOVERY_URL="https://app.divoom-gz.com/Device/ReturnSameLANDevice"
 OPTIONS_FILE="/data/options.json"
 
@@ -63,12 +75,18 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
         if [ -z "${screen_size}" ]; then
             screen_size="${PIXOO_SCREEN_SIZE}"
         fi
+        if ! [[ "${screen_size}" =~ ^[0-9]+$ ]]; then
+            screen_size="64"
+        fi
 
         if [ -z "${debug}" ]; then
             debug="${PIXOO_DEBUG}"
         fi
 
         if [ -z "${retries}" ]; then
+            retries="${PIXOO_CONNECTION_RETRIES}"
+        fi
+        if ! [[ "${retries}" =~ ^[0-9]+$ ]]; then
             retries="${PIXOO_CONNECTION_RETRIES}"
         fi
 
@@ -155,10 +173,10 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
             --arg name "${name}" \
             --arg host "${host}" \
             --arg device_type "${device_type}" \
-            --argjson screen_size "${screen_size}" \
-            --argjson debug "${debug}" \
-            --argjson connection_retries "${retries}" \
-            '$devices + [{"key":$key,"name":$name,"host":$host,"device_type":$device_type,"screen_size":$screen_size,"debug":$debug,"connection_retries":$connection_retries}]'
+            --arg screen_size "${screen_size}" \
+            --arg debug "${debug}" \
+            --arg connection_retries "${retries}" \
+            '$devices + [{"key":$key,"name":$name,"host":$host,"device_type":$device_type,"screen_size":($screen_size|tonumber? // 64),"debug":($debug == "true"),"connection_retries":($connection_retries|tonumber? // 10)}]'
         )
 
         INDEX=$((INDEX + 1))
@@ -167,10 +185,10 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
     export PIXOO_DEVICES_JSON="${DEVICES_JSON}"
 
     PIXOO_HOST=$(echo "${DEVICES_JSON}" | jq -r '.[0].host')
-    PIXOO_DEVICE_TYPE=$(echo "${DEVICES_JSON}" | jq -r '.[0].device_type')
-    PIXOO_SCREEN_SIZE=$(echo "${DEVICES_JSON}" | jq -r '.[0].screen_size')
-    PIXOO_DEBUG=$(echo "${DEVICES_JSON}" | jq -r '.[0].debug')
-    PIXOO_CONNECTION_RETRIES=$(echo "${DEVICES_JSON}" | jq -r '.[0].connection_retries')
+    PIXOO_DEVICE_TYPE=$(echo "${DEVICES_JSON}" | jq -r '.[0].device_type // "pixoo"')
+    PIXOO_SCREEN_SIZE=$(echo "${DEVICES_JSON}" | jq -r '.[0].screen_size // 64')
+    PIXOO_DEBUG=$(echo "${DEVICES_JSON}" | jq -r '.[0].debug // false')
+    PIXOO_CONNECTION_RETRIES=$(echo "${DEVICES_JSON}" | jq -r '.[0].connection_retries // 10')
 
     export PIXOO_HOST
     export PIXOO_DEVICE_TYPE
