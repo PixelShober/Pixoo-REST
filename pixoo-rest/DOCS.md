@@ -201,19 +201,34 @@ curl -X POST http://homeassistant.local:5000/device/image/url \
   }'
 ```
 
-#### Time Gate: Send GIF Frame
+#### Time Gate: Play GIF (URL)
 
 ```bash
-curl -X POST http://homeassistant.local:5000/timegate/send-gif \
+curl -X POST http://homeassistant.local:5000/timegate/play-gif \
   -H "Content-Type: application/json" \
   -d '{
-    "lcd_array": [1,1,1,1,1],
-    "pic_num": 1,
-    "pic_width": 128,
-    "pic_offset": 0,
-    "pic_id": 1,
-    "pic_speed": 1000,
-    "pic_data": "<base64-jpg>"
+    "lcd_array": [0,0,0,1,0],
+    "file_name": ["http://f.divoom-gz.com/128_128.gif"]
+  }'
+```
+
+#### Time Gate: Send Text
+
+```bash
+curl -X POST http://homeassistant.local:5000/timegate/send-text \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lcd_index": 4,
+    "text_id": 1,
+    "x": 0,
+    "y": 40,
+    "direction": 0,
+    "font": 4,
+    "text_width": 56,
+    "text": "Hallo",
+    "speed": 10,
+    "color": "#FFFF00",
+    "align": 1
   }'
 ```
 
@@ -268,7 +283,7 @@ Error responses:
 
 ### REST Commands
 
-Add these to your `configuration.yaml`:
+Add these to your `configuration.yaml`. The Time Gate payloads and URL are parameterized so you can change them in **Developer Tools -> Services**:
 
 ```yaml
 rest_command:
@@ -310,35 +325,61 @@ rest_command:
     method: POST
   
   timegate_play_gif:
-    url: http://homeassistant.local:5000/timegate/play-gif
+    url: "http://{{ host }}:5000/timegate/play-gif"
     method: POST
     headers:
       Content-Type: application/json
     payload: >
-      {
-        "lcd_array": [0,0,0,0,1],
-        "file_name": ["http://f.divoom-gz.com/128_128.gif"]
-      }
+      {{ {
+        "lcd_array": lcd_array,
+        "file_name": file_name
+      } | tojson }}
   
   timegate_send_text:
-    url: http://homeassistant.local:5000/timegate/send-text
+    url: "http://{{ host }}:5000/timegate/send-text"
     method: POST
     headers:
       Content-Type: application/json
     payload: >
-      {
-        "lcd_index": 4,
-        "text_id": 1,
-        "x": 0,
-        "y": 40,
-        "direction": 0,
-        "font": 4,
-        "text_width": 56,
-        "text": "{{ text }}",
-        "speed": 10,
-        "color": "#FFFF00",
-        "align": 1
-      }
+      {{ {
+        "lcd_index": lcd_index,
+        "text_id": text_id,
+        "x": x,
+        "y": y,
+        "direction": direction,
+        "font": font,
+        "text_width": text_width,
+        "text": text,
+        "speed": speed,
+        "color": color,
+        "align": align
+      } | tojson }}
+```
+
+Developer Tools example data for `rest_command.timegate_play_gif`:
+
+```yaml
+host: 192.168.178.165
+lcd_array: [0,0,0,1,0]
+file_name:
+  - "http://f.divoom-gz.com/128_128.gif"
+```
+
+Developer Tools example data for `rest_command.timegate_send_text`:
+
+```yaml
+host: 192.168.178.165
+lcd_index: 4
+text_id: 1
+x: 0
+y: 40
+direction: 0
+font: 4
+text_width: 56
+text: "Hallo"
+speed: 10
+color: "#FFFF00"
+align: 1
 ```
 
 Note: Time Gate text requires an active animation layer. Call `timegate_play_gif` first, then `timegate_send_text`.

@@ -111,8 +111,8 @@ cd /app || {
     exit 1
 }
 
-# pixoo-rest v2.0.11 is already included in the Docker image
-bashio::log.info "Using pixoo-rest v2.0.11 (FastAPI)"
+# pixoo-rest v2.0.12 is already included in the Docker image
+bashio::log.info "Using pixoo-rest v2.0.12 (FastAPI)"
 
 # Set additional environment variables for uvicorn
 export PIXOO_REST_HOST="0.0.0.0"

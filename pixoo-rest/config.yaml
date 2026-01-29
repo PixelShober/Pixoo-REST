@@ -1,7 +1,16 @@
 name: Pixoo REST
-version: "2.0.11"
+version: "2.0.12"
 slug: pixoo-rest
-description: RESTful API for Divoom Pixoo and Time Gate displays with automatic discovery and Home Assistant integration
+description: |
+  RESTful API for Divoom Pixoo and Time Gate displays with automatic discovery and Home Assistant integration.
+  Example (Developer Tools -> Services) using rest_command.pixoo_text:
+    service: rest_command.pixoo_text
+    data:
+      host: 192.168.178.165
+      text: "Hello from Home Assistant"
+      position: 0
+      color: "#00FF00"
+      font: 3
 url: https://github.com/PixelShober/Pixoo-REST/tree/main/pixoo-rest
 arch:
   - aarch64

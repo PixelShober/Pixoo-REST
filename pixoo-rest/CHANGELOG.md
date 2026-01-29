@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.12] - 2026-01-27
+
+### Changed
+- Updated Time Gate examples in add-on docs with parameterized REST commands and Developer Tools payload samples
+
 ## [2.0.11] - 2026-01-26
 
 ### Added
