@@ -2,38 +2,16 @@
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
-from pixoo_rest.core.config import settings
 from pixoo_rest.models.requests import DivoomApiResponse
+from pixoo_rest_devices import get_device_registry
 
 router = APIRouter(prefix="/timegate", tags=["timegate"])
-
-
-def _normalize_device_type(value: str | None) -> str:
-    normalized = (value or "pixoo").strip().lower()
-    normalized = normalized.replace("-", "_").replace(" ", "_")
-    if normalized in ("timegate", "time_gate"):
-        return "time_gate"
-    if normalized == "auto":
-        return "auto"
-    return "pixoo"
-
-
-def _require_timegate() -> None:
-    device_type = _normalize_device_type(os.getenv("PIXOO_DEVICE_TYPE"))
-    if device_type == "auto":
-        device_type = "pixoo"
-    if device_type != "time_gate":
-        raise HTTPException(
-            status_code=400,
-            detail="Time Gate mode is disabled. Set PIXOO_DEVICE_TYPE to time_gate or auto-detect it.",
-        )
 
 
 def _validate_lcd_array(lcd_array: list[int]) -> list[int]:
@@ -44,11 +22,45 @@ def _validate_lcd_array(lcd_array: list[int]) -> list[int]:
     return lcd_array
 
 
-async def _post_command(payload: dict[str, Any]) -> DivoomApiResponse:
+def _select_timegate_device(
+    request: Request,
+    device: str | None = Query(
+        None,
+        description="Device alias configured in the add-on (defaults to first device).",
+    ),
+    host: str | None = Query(
+        None,
+        description="Device host/IP to target (overrides default device).",
+    ),
+    x_pixoo_device: str | None = Header(None, alias="X-Pixoo-Device"),
+    x_pixoo_host: str | None = Header(None, alias="X-Pixoo-Host"),
+):
+    try:
+        registry = get_device_registry()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    device_key = device or x_pixoo_device
+    host_value = host or x_pixoo_host
+    selected = registry.select(device_key, host_value)
+    if selected is None:
+        available = ", ".join(registry.keys()) or "none"
+        raise HTTPException(
+            status_code=404,
+            detail=f"Device not found. Available devices: {available}",
+        )
+    if selected.device_type != "time_gate":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Device '{selected.key}' is configured as {selected.device_type}.",
+        )
+    return selected
+
+
+async def _post_command(payload: dict[str, Any], host: str) -> DivoomApiResponse:
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
-                f"http://{settings.pixoo_host}/post",
+                f"http://{host}/post",
                 json=payload,
             )
             response.raise_for_status()
@@ -65,11 +77,11 @@ async def _post_command(payload: dict[str, Any]) -> DivoomApiResponse:
         ) from exc
 
 
-async def _post_raw(payload: dict[str, Any]) -> dict[str, Any]:
+async def _post_raw(payload: dict[str, Any], host: str) -> dict[str, Any]:
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
-                f"http://{settings.pixoo_host}/post",
+                f"http://{host}/post",
                 json=payload,
             )
             response.raise_for_status()
@@ -150,11 +162,14 @@ class TimeGateCommandRequest(BaseModel):
     command: dict[str, Any] = Field(..., description="Raw command payload.")
 
 
-@router.post("/send-gif", response_model=DivoomApiResponse, dependencies=[Depends(_require_timegate)])
-async def send_gif(request: TimeGateSendGifRequest) -> DivoomApiResponse:
+@router.post("/send-gif", response_model=DivoomApiResponse)
+async def send_gif(
+    request: TimeGateSendGifRequest,
+    device=Depends(_select_timegate_device),
+) -> DivoomApiResponse:
     """Send a GIF frame (Draw/SendHttpGif)."""
     lcd_array = _validate_lcd_array(request.lcd_array)
-    pic_width = request.pic_width or settings.pixoo_screen_size
+    pic_width = request.pic_width or device.screen_size
     payload = {
         "Command": "Draw/SendHttpGif",
         "LcdArray": lcd_array,
@@ -165,11 +180,14 @@ async def send_gif(request: TimeGateSendGifRequest) -> DivoomApiResponse:
         "PicSpeed": request.pic_speed,
         "PicData": request.pic_data,
     }
-    return await _post_command(payload)
+    return await _post_command(payload, device.host)
 
 
-@router.post("/send-text", response_model=DivoomApiResponse, dependencies=[Depends(_require_timegate)])
-async def send_text(request: TimeGateSendTextRequest) -> DivoomApiResponse:
+@router.post("/send-text", response_model=DivoomApiResponse)
+async def send_text(
+    request: TimeGateSendTextRequest,
+    device=Depends(_select_timegate_device),
+) -> DivoomApiResponse:
     """Send scrolling text (Draw/SendHttpText)."""
     payload = {
         "Command": "Draw/SendHttpText",
@@ -185,11 +203,14 @@ async def send_text(request: TimeGateSendTextRequest) -> DivoomApiResponse:
         "color": request.color,
         "align": request.align,
     }
-    return await _post_command(payload)
+    return await _post_command(payload, device.host)
 
 
-@router.post("/play-gif", response_model=DivoomApiResponse, dependencies=[Depends(_require_timegate)])
-async def play_gif(request: TimeGatePlayGifRequest) -> DivoomApiResponse:
+@router.post("/play-gif", response_model=DivoomApiResponse)
+async def play_gif(
+    request: TimeGatePlayGifRequest,
+    device=Depends(_select_timegate_device),
+) -> DivoomApiResponse:
     """Play GIFs from URLs (Device/PlayGif)."""
     lcd_array = _validate_lcd_array(request.lcd_array)
     payload = {
@@ -197,31 +218,40 @@ async def play_gif(request: TimeGatePlayGifRequest) -> DivoomApiResponse:
         "LcdArray": lcd_array,
         "FileName": request.file_name,
     }
-    return await _post_command(payload)
+    return await _post_command(payload, device.host)
 
 
-@router.post("/set-brightness", response_model=DivoomApiResponse, dependencies=[Depends(_require_timegate)])
-async def set_brightness(request: TimeGateBrightnessRequest) -> DivoomApiResponse:
+@router.post("/set-brightness", response_model=DivoomApiResponse)
+async def set_brightness(
+    request: TimeGateBrightnessRequest,
+    device=Depends(_select_timegate_device),
+) -> DivoomApiResponse:
     """Set brightness (Channel/SetBrightness)."""
     payload = {"Command": "Channel/SetBrightness", "Brightness": request.brightness}
-    return await _post_command(payload)
+    return await _post_command(payload, device.host)
 
 
-@router.post("/reset-gif-id", response_model=DivoomApiResponse, dependencies=[Depends(_require_timegate)])
-async def reset_gif_id() -> DivoomApiResponse:
+@router.post("/reset-gif-id", response_model=DivoomApiResponse)
+async def reset_gif_id(device=Depends(_select_timegate_device)) -> DivoomApiResponse:
     """Reset GIF cache (Draw/ResetHttpGifId)."""
     payload = {"Command": "Draw/ResetHttpGifId"}
-    return await _post_command(payload)
+    return await _post_command(payload, device.host)
 
 
-@router.post("/command-list", response_model=DivoomApiResponse, dependencies=[Depends(_require_timegate)])
-async def command_list(request: TimeGateCommandListRequest) -> DivoomApiResponse:
+@router.post("/command-list", response_model=DivoomApiResponse)
+async def command_list(
+    request: TimeGateCommandListRequest,
+    device=Depends(_select_timegate_device),
+) -> DivoomApiResponse:
     """Send a list of commands (Draw/CommandList)."""
     payload = {"Command": "Draw/CommandList", "CommandList": request.command_list}
-    return await _post_command(payload)
+    return await _post_command(payload, device.host)
 
 
-@router.post("/command", dependencies=[Depends(_require_timegate)])
-async def command(request: TimeGateCommandRequest) -> dict[str, Any]:
+@router.post("/command")
+async def command(
+    request: TimeGateCommandRequest,
+    device=Depends(_select_timegate_device),
+) -> dict[str, Any]:
     """Send a raw command payload to the device."""
-    return await _post_raw(request.command)
+    return await _post_raw(request.command, device.host)

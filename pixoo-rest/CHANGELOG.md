@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.13] - 2026-01-29
+
+### Added
+- Multi-device configuration support for the Home Assistant add-on
+- Per-request device selection via query parameter or headers for Pixoo and Time Gate endpoints
+
+### Changed
+- Documentation updated with multi-device examples and rest_command targeting
+
 ## [2.0.12] - 2026-01-27
 
 ### Changed

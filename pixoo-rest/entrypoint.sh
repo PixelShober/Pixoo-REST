@@ -18,6 +18,21 @@ fi
 # Standalone mode - use environment variables directly
 PIXOO_DEVICE_TYPE="${PIXOO_DEVICE_TYPE:-auto}"
 
+if [ -n "${PIXOO_DEVICES_JSON}" ]; then
+    echo "Multi-device configuration detected via PIXOO_DEVICES_JSON."
+
+    if ! echo "${PIXOO_DEVICES_JSON}" | jq -e '. | length > 0' >/dev/null 2>&1; then
+        echo "ERROR: PIXOO_DEVICES_JSON is invalid or empty"
+        exit 1
+    fi
+
+    PIXOO_HOST=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].host')
+    PIXOO_DEVICE_TYPE=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].device_type')
+    PIXOO_SCREEN_SIZE=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].screen_size')
+    PIXOO_DEBUG=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].debug')
+    PIXOO_CONNECTION_RETRIES=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].connection_retries')
+fi
+
 echo "Configuration:"
 echo "  PIXOO_HOST: ${PIXOO_HOST:-not set}"
 echo "  PIXOO_DEVICE_TYPE: ${PIXOO_DEVICE_TYPE}"
@@ -41,7 +56,7 @@ export PIXOO_SCREEN_SIZE="${PIXOO_SCREEN_SIZE:-64}"
 export PIXOO_DEBUG="${PIXOO_DEBUG:-false}"
 export PIXOO_CONNECTION_RETRIES="${PIXOO_CONNECTION_RETRIES:-10}"
 
-if [ "${PIXOO_DEVICE_TYPE}" = "auto" ]; then
+if [ -z "${PIXOO_DEVICES_JSON}" ] && [ "${PIXOO_DEVICE_TYPE}" = "auto" ]; then
     DISCOVERY_URL="https://app.divoom-gz.com/Device/ReturnSameLANDevice"
     DETECT_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
     DEVICE_NAME=$(echo "${DETECT_RESULT}" | jq -r --arg ip "${PIXOO_HOST}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
@@ -75,7 +90,7 @@ cd /app || {
     exit 1
 }
 
-echo "Pixoo REST v2.0.12 ready (FastAPI)"
+echo "Pixoo REST v2.0.13 ready (FastAPI)"
 echo ""
 
 # Start Uvicorn server (FastAPI)

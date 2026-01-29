@@ -17,83 +17,252 @@ if [ -z "${PIXOO_DEVICE_TYPE}" ]; then
 fi
 
 DISCOVERY_URL="https://app.divoom-gz.com/Device/ReturnSameLANDevice"
+OPTIONS_FILE="/data/options.json"
+
+DEVICE_LIST_JSON="[]"
+if [ -f "${OPTIONS_FILE}" ]; then
+    DEVICE_LIST_JSON=$(jq -c '.PIXOO_DEVICES // []' "${OPTIONS_FILE}")
+fi
+DEVICE_COUNT=$(echo "${DEVICE_LIST_JSON}" | jq 'length')
+
+if [ "${DEVICE_COUNT}" -gt 0 ]; then
+    bashio::log.info "Multi-device configuration detected (${DEVICE_COUNT} devices)."
+
+    NEED_HOST_AUTO=$(echo "${DEVICE_LIST_JSON}" | jq '[.[] | select((.host_auto // false) == true)] | length')
+    NEED_TYPE_AUTO=$(echo "${DEVICE_LIST_JSON}" | jq '[.[] | select((.device_type // "auto") == "auto")] | length')
+
+    DISCOVERY_RESULT=""
+    if [ "${NEED_HOST_AUTO}" -gt 0 ] || [ "${NEED_TYPE_AUTO}" -gt 0 ]; then
+        DISCOVERY_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
+
+        if [ -z "${DISCOVERY_RESULT}" ] && [ "${NEED_HOST_AUTO}" -gt 0 ]; then
+            bashio::log.error "Failed to connect to Divoom discovery service"
+            bashio::log.error "Auto-discovery is required for at least one device"
+            exit 1
+        fi
+
+        if [ -z "${DISCOVERY_RESULT}" ]; then
+            bashio::log.warning "Divoom discovery service unavailable; auto device type will default to pixoo."
+        fi
+    fi
+
+    DEVICES_JSON="[]"
+    USED_HOSTS=()
+    USED_KEYS=()
+    INDEX=0
+
+    for device in $(echo "${DEVICE_LIST_JSON}" | jq -c '.[]'); do
+        name=$(echo "${device}" | jq -r '.name // empty')
+        host_auto=$(echo "${device}" | jq -r '.host_auto // false')
+        host=$(echo "${device}" | jq -r '.host // empty')
+        device_type=$(echo "${device}" | jq -r '.device_type // "auto"')
+        screen_size=$(echo "${device}" | jq -r '.screen_size // empty')
+        debug=$(echo "${device}" | jq -r '.debug // empty')
+        retries=$(echo "${device}" | jq -r '.connection_retries // empty')
+
+        if [ -z "${screen_size}" ]; then
+            screen_size="${PIXOO_SCREEN_SIZE}"
+        fi
+
+        if [ -z "${debug}" ]; then
+            debug="${PIXOO_DEBUG}"
+        fi
+
+        if [ -z "${retries}" ]; then
+            retries="${PIXOO_CONNECTION_RETRIES}"
+        fi
+
+        host_auto=$(echo "${host_auto}" | tr '[:upper:]' '[:lower:]')
+        debug=$(echo "${debug}" | tr '[:upper:]' '[:lower:]')
+
+        if [ "${debug}" != "true" ] && [ "${debug}" != "false" ]; then
+            debug="false"
+        fi
+
+        if [ "${host_auto}" = "true" ]; then
+            if [ -z "${DISCOVERY_RESULT}" ]; then
+                bashio::log.error "Discovery is required but not available for device ${name:-${INDEX}}"
+                exit 1
+            fi
+
+            if [ -n "${name}" ]; then
+                host=$(echo "${DISCOVERY_RESULT}" | jq -r --arg name "${name}" '.DeviceList[] | select((.DeviceName // "" | ascii_downcase) == ($name | ascii_downcase)) | .DevicePrivateIP' | head -n1)
+            fi
+
+            if [ -z "${host}" ] || [ "${host}" = "null" ]; then
+                for candidate in $(echo "${DISCOVERY_RESULT}" | jq -r '.DeviceList[].DevicePrivateIP'); do
+                    if ! printf '%s\n' "${USED_HOSTS[@]}" | grep -qx "${candidate}"; then
+                        host="${candidate}"
+                        break
+                    fi
+                done
+            fi
+
+            if [ -z "${host}" ] || [ "${host}" = "null" ]; then
+                bashio::log.error "Failed to auto-detect host for device ${name:-${INDEX}}"
+                exit 1
+            fi
+
+            bashio::log.info "Auto-detected device host for ${name:-device ${INDEX}}: ${host}"
+        else
+            if [ -z "${host}" ] || [ "${host}" = "null" ]; then
+                bashio::log.error "Device host is required when host_auto is false"
+                exit 1
+            fi
+        fi
+
+        if [ "${device_type}" = "auto" ]; then
+            device_name=""
+            if [ -n "${DISCOVERY_RESULT}" ]; then
+                device_name=$(echo "${DISCOVERY_RESULT}" | jq -r --arg ip "${host}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
+            fi
+
+            if echo "${device_name}" | grep -qiE "time[ _-]?gate"; then
+                device_type="time_gate"
+            else
+                device_type="pixoo"
+            fi
+
+            if [ -n "${device_name}" ] && [ "${device_name}" != "null" ]; then
+                bashio::log.info "Detected device type for ${host}: ${device_type} (${device_name})"
+            else
+                bashio::log.warning "Could not detect device type for ${host}; defaulting to ${device_type}"
+            fi
+        fi
+
+        if [ "${device_type}" = "time_gate" ]; then
+            if ! [[ "${screen_size}" =~ ^[0-9]+$ ]]; then
+                screen_size="128"
+            elif [ "${screen_size}" -lt 128 ]; then
+                screen_size="128"
+            fi
+        fi
+
+        key="${name}"
+        if [ -z "${key}" ]; then
+            key="${host}"
+        fi
+        if printf '%s\n' "${USED_KEYS[@]}" | grep -qx "${key}"; then
+            key="${key}-${INDEX}"
+        fi
+
+        USED_KEYS+=("${key}")
+        USED_HOSTS+=("${host}")
+
+        DEVICES_JSON=$(jq -c \
+            --argjson devices "${DEVICES_JSON}" \
+            --arg key "${key}" \
+            --arg name "${name}" \
+            --arg host "${host}" \
+            --arg device_type "${device_type}" \
+            --argjson screen_size "${screen_size}" \
+            --argjson debug "${debug}" \
+            --argjson connection_retries "${retries}" \
+            '$devices + [{"key":$key,"name":$name,"host":$host,"device_type":$device_type,"screen_size":$screen_size,"debug":$debug,"connection_retries":$connection_retries}]'
+        )
+
+        INDEX=$((INDEX + 1))
+    done
+
+    export PIXOO_DEVICES_JSON="${DEVICES_JSON}"
+
+    PIXOO_HOST=$(echo "${DEVICES_JSON}" | jq -r '.[0].host')
+    PIXOO_DEVICE_TYPE=$(echo "${DEVICES_JSON}" | jq -r '.[0].device_type')
+    PIXOO_SCREEN_SIZE=$(echo "${DEVICES_JSON}" | jq -r '.[0].screen_size')
+    PIXOO_DEBUG=$(echo "${DEVICES_JSON}" | jq -r '.[0].debug')
+    PIXOO_CONNECTION_RETRIES=$(echo "${DEVICES_JSON}" | jq -r '.[0].connection_retries')
+
+    export PIXOO_HOST
+    export PIXOO_DEVICE_TYPE
+    export PIXOO_SCREEN_SIZE
+    export PIXOO_DEBUG
+    export PIXOO_CONNECTION_RETRIES
+
+    for device in $(echo "${DEVICES_JSON}" | jq -c '.[]'); do
+        key=$(echo "${device}" | jq -r '.key')
+        host=$(echo "${device}" | jq -r '.host')
+        dtype=$(echo "${device}" | jq -r '.device_type')
+        size=$(echo "${device}" | jq -r '.screen_size')
+        bashio::log.info "Device '${key}': ${host} (${dtype}, ${size}px)"
+    done
+else
+    # Device discovery and validation (single device)
+    if [ "${PIXOO_HOST_AUTO}" = true ]; then
+        bashio::log.info "Starting automatic device discovery..."
+
+        DISCOVERY_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
+
+        if [ -z "${DISCOVERY_RESULT}" ]; then
+            bashio::log.error "Failed to connect to Divoom discovery service"
+            bashio::log.error "Please check your internet connection or set PIXOO_HOST manually"
+            exit 1
+        fi
+
+        DEVICE_IP=$(echo "${DISCOVERY_RESULT}" | jq -r '.DeviceList[0].DevicePrivateIP // empty')
+
+        if [ -z "${DEVICE_IP}" ] || [ "${DEVICE_IP}" = "null" ]; then
+            bashio::log.error "No Pixoo device found on local network"
+            bashio::log.error "Make sure your device is powered on and connected to WiFi"
+            bashio::log.info "You can also manually set PIXOO_HOST in the configuration"
+            exit 1
+        fi
+
+        PIXOO_HOST="${DEVICE_IP}"
+        bashio::log.info "Discovered Pixoo device at: ${PIXOO_HOST}"
+    else
+        PIXOO_HOST=$(bashio::config 'PIXOO_HOST')
+
+        if [ -z "${PIXOO_HOST}" ]; then
+            bashio::log.error "PIXOO_HOST is not configured"
+            bashio::log.error "Either enable PIXOO_HOST_AUTO or provide a valid PIXOO_HOST"
+            exit 1
+        fi
+
+        bashio::log.info "Using manually configured device: ${PIXOO_HOST}"
+    fi
+
+    # Auto-detect device type (Pixoo vs Time Gate)
+    if [ "${PIXOO_DEVICE_TYPE}" = "auto" ]; then
+        DEVICE_NAME=""
+
+        if [ -n "${DISCOVERY_RESULT}" ]; then
+            DEVICE_NAME=$(echo "${DISCOVERY_RESULT}" | jq -r --arg ip "${PIXOO_HOST}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
+            if [ -z "${DEVICE_NAME}" ] || [ "${DEVICE_NAME}" = "null" ]; then
+                DEVICE_NAME=$(echo "${DISCOVERY_RESULT}" | jq -r '.DeviceList[0].DeviceName // empty')
+            fi
+        else
+            DETECT_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
+            if [ -n "${DETECT_RESULT}" ]; then
+                DEVICE_NAME=$(echo "${DETECT_RESULT}" | jq -r --arg ip "${PIXOO_HOST}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
+            fi
+        fi
+
+        if echo "${DEVICE_NAME}" | grep -qiE "time[ _-]?gate"; then
+            PIXOO_DEVICE_TYPE="time_gate"
+        else
+            PIXOO_DEVICE_TYPE="pixoo"
+        fi
+
+        if [ -n "${DEVICE_NAME}" ] && [ "${DEVICE_NAME}" != "null" ]; then
+            bashio::log.info "Detected device name: ${DEVICE_NAME}"
+        else
+            bashio::log.warning "Could not detect device name; defaulting to ${PIXOO_DEVICE_TYPE}"
+        fi
+    fi
+
+    # Validate host format (basic IP validation)
+    if ! echo "${PIXOO_HOST}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+        bashio::log.warning "PIXOO_HOST does not appear to be a valid IP address: ${PIXOO_HOST}"
+    fi
+
+    export PIXOO_HOST
+    export PIXOO_DEVICE_TYPE
+fi
 
 # Export environment variables
 export PIXOO_DEBUG
 export PIXOO_SCREEN_SIZE
 export PIXOO_CONNECTION_RETRIES
-
-# Device discovery and validation
-if [ "${PIXOO_HOST_AUTO}" = true ]; then
-    bashio::log.info "Starting automatic device discovery..."
-
-    DISCOVERY_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
-    
-    if [ -z "${DISCOVERY_RESULT}" ]; then
-        bashio::log.error "Failed to connect to Divoom discovery service"
-        bashio::log.error "Please check your internet connection or set PIXOO_HOST manually"
-        exit 1
-    fi
-    
-    DEVICE_IP=$(echo "${DISCOVERY_RESULT}" | jq -r '.DeviceList[0].DevicePrivateIP // empty')
-    
-    if [ -z "${DEVICE_IP}" ] || [ "${DEVICE_IP}" = "null" ]; then
-        bashio::log.error "No Pixoo device found on local network"
-        bashio::log.error "Make sure your device is powered on and connected to WiFi"
-        bashio::log.info "You can also manually set PIXOO_HOST in the configuration"
-        exit 1
-    fi
-    
-    PIXOO_HOST="${DEVICE_IP}"
-    bashio::log.info "Discovered Pixoo device at: ${PIXOO_HOST}"
-else
-    PIXOO_HOST=$(bashio::config 'PIXOO_HOST')
-    
-    if [ -z "${PIXOO_HOST}" ]; then
-        bashio::log.error "PIXOO_HOST is not configured"
-        bashio::log.error "Either enable PIXOO_HOST_AUTO or provide a valid PIXOO_HOST"
-        exit 1
-    fi
-    
-    bashio::log.info "Using manually configured device: ${PIXOO_HOST}"
-fi
-
-# Auto-detect device type (Pixoo vs Time Gate)
-if [ "${PIXOO_DEVICE_TYPE}" = "auto" ]; then
-    DEVICE_NAME=""
-
-    if [ -n "${DISCOVERY_RESULT}" ]; then
-        DEVICE_NAME=$(echo "${DISCOVERY_RESULT}" | jq -r --arg ip "${PIXOO_HOST}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
-        if [ -z "${DEVICE_NAME}" ] || [ "${DEVICE_NAME}" = "null" ]; then
-            DEVICE_NAME=$(echo "${DISCOVERY_RESULT}" | jq -r '.DeviceList[0].DeviceName // empty')
-        fi
-    else
-        DETECT_RESULT=$(curl -s -X POST "${DISCOVERY_URL}" || echo "")
-        if [ -n "${DETECT_RESULT}" ]; then
-            DEVICE_NAME=$(echo "${DETECT_RESULT}" | jq -r --arg ip "${PIXOO_HOST}" '.DeviceList[] | select(.DevicePrivateIP==$ip) | .DeviceName' | head -n1)
-        fi
-    fi
-
-    if echo "${DEVICE_NAME}" | grep -qiE "time[ _-]?gate"; then
-        PIXOO_DEVICE_TYPE="time_gate"
-    else
-        PIXOO_DEVICE_TYPE="pixoo"
-    fi
-
-    if [ -n "${DEVICE_NAME}" ] && [ "${DEVICE_NAME}" != "null" ]; then
-        bashio::log.info "Detected device name: ${DEVICE_NAME}"
-    else
-        bashio::log.warning "Could not detect device name; defaulting to ${PIXOO_DEVICE_TYPE}"
-    fi
-fi
-
-# Validate host format (basic IP validation)
-if ! echo "${PIXOO_HOST}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
-    bashio::log.warning "PIXOO_HOST does not appear to be a valid IP address: ${PIXOO_HOST}"
-fi
-
-export PIXOO_HOST
-export PIXOO_DEVICE_TYPE
 
 # Log configuration summary
 bashio::log.info "===== Pixoo REST Configuration ====="
@@ -111,8 +280,8 @@ cd /app || {
     exit 1
 }
 
-# pixoo-rest v2.0.12 is already included in the Docker image
-bashio::log.info "Using pixoo-rest v2.0.12 (FastAPI)"
+# pixoo-rest v2.0.13 is already included in the Docker image
+bashio::log.info "Using pixoo-rest v2.0.13 (FastAPI)"
 
 # Set additional environment variables for uvicorn
 export PIXOO_REST_HOST="0.0.0.0"

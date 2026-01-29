@@ -51,6 +51,7 @@ WORKDIR /app
 # Copy Home Assistant scripts
 COPY pixoo_rest_entrypoint.py /app/
 COPY pixoo_rest_timegate.py /app/
+COPY pixoo_rest_devices.py /app/
 COPY run.sh /
 COPY entrypoint.sh /
 RUN chmod a+x /run.sh /entrypoint.sh
