@@ -162,6 +162,26 @@ rest_command:
         "color": color,
         "font": font
       } | tojson }}
+
+  pixoo_brightness:
+    url: "http://{{ host }}:5000/device/brightness?device={{ device }}"
+    method: POST
+    headers:
+      Content-Type: application/json
+    payload: >
+      {{ {
+        "brightness": brightness
+      } | tojson }}
+
+  pixoo_gif:
+    url: "http://{{ host }}:5000/device/image/url?device={{ device }}"
+    method: POST
+    headers:
+      Content-Type: application/json
+    payload: >
+      {{ {
+        "url": url
+      } | tojson }}
 ```
 
 Developer Tools example data for `rest_command.pixoo_text`:
@@ -173,6 +193,22 @@ text: "Hello from Home Assistant"
 position: 0
 color: "#00FF00"
 font: 3
+```
+
+Developer Tools example data for `rest_command.pixoo_brightness`:
+
+```yaml
+host: 192.168.178.165
+device: office
+brightness: 35
+```
+
+Developer Tools example data for `rest_command.pixoo_gif`:
+
+```yaml
+host: 192.168.178.165
+device: office
+url: "https://example.com/animation.gif"
 ```
 
 If you omit `device`, the first entry in `PIXOO_DEVICES` is used. You can also target by IP with `?host=...`.
@@ -277,5 +313,5 @@ MIT License - see [LICENSE](../LICENSE) for details.
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [license-shield]: https://img.shields.io/github/license/PixelShober/Pixoo-REST.svg
-[release-shield]: https://img.shields.io/badge/version-2.0.14-blue.svg
-[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.14
+[release-shield]: https://img.shields.io/badge/version-2.0.15-blue.svg
+[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.15

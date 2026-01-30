@@ -389,6 +389,33 @@ rest_command:
 
 If you omit `device`, the first entry in `PIXOO_DEVICES` is used. You can also target by IP with `?host=...`.
 
+Developer Tools example data for `rest_command.pixoo_text`:
+
+```yaml
+host: 192.168.178.165
+device: office
+text: "Hello from Home Assistant"
+position: 0
+color: "#00FF00"
+font: 3
+```
+
+Developer Tools example data for `rest_command.pixoo_brightness`:
+
+```yaml
+host: 192.168.178.165
+device: office
+brightness: 35
+```
+
+Developer Tools example data for `rest_command.pixoo_image_url` (GIF):
+
+```yaml
+host: 192.168.178.165
+device: office
+url: "https://example.com/animation.gif"
+```
+
 Developer Tools example data for `rest_command.timegate_play_gif`:
 
 ```yaml

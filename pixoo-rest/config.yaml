@@ -1,12 +1,43 @@
 name: Pixoo REST
-version: "2.0.14"
+version: "2.0.15"
 slug: pixoo-rest
 description: |
   RESTful API for Divoom Pixoo and Time Gate displays with automatic discovery and Home Assistant integration.
-  Example (Developer Tools -> Services) using rest_command.pixoo_text:
+  Example (configuration.yaml) for brightness:
+    rest_command:
+      pixoo_brightness:
+        url: "http://{{ host }}:5000/device/brightness?device={{ device }}"
+        method: POST
+        headers:
+          Content-Type: application/json
+        payload: >
+          {{ { "brightness": brightness } | tojson }}
+  Example (Developer Tools -> Services) for brightness:
+    service: rest_command.pixoo_brightness
+    data:
+      host: 192.168.178.165
+      device: office
+      brightness: 35
+  Example (configuration.yaml) to send a GIF:
+    rest_command:
+      pixoo_gif:
+        url: "http://{{ host }}:5000/device/image/url?device={{ device }}"
+        method: POST
+        headers:
+          Content-Type: application/json
+        payload: >
+          {{ { "url": url } | tojson }}
+  Example (Developer Tools -> Services) to send a GIF:
+    service: rest_command.pixoo_gif
+    data:
+      host: 192.168.178.165
+      device: office
+      url: "https://example.com/animation.gif"
+  Example (Developer Tools -> Services) to send text:
     service: rest_command.pixoo_text
     data:
       host: 192.168.178.165
+      device: office
       text: "Hello from Home Assistant"
       position: 0
       color: "#00FF00"

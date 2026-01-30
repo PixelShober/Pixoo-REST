@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.15] - 2026-01-29
+
+### Changed
+- Added add-on description examples for brightness, GIF, and text REST commands
+- Expanded Home Assistant REST command examples in documentation
+
 ## [2.0.14] - 2026-01-29
 
 ### Changed

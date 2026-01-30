@@ -103,7 +103,7 @@ cd /app || {
     exit 1
 }
 
-echo "Pixoo REST v2.0.13 ready (FastAPI)"
+echo "Pixoo REST v2.0.15 ready (FastAPI)"
 echo ""
 
 # Start Uvicorn server (FastAPI)
