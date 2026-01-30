@@ -31,6 +31,19 @@ if [ -n "${PIXOO_DEVICES_JSON}" ]; then
     PIXOO_SCREEN_SIZE=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].screen_size // 64')
     PIXOO_DEBUG=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].debug // false')
     PIXOO_CONNECTION_RETRIES=$(echo "${PIXOO_DEVICES_JSON}" | jq -r '.[0].connection_retries // 10')
+
+    if [ -z "${PIXOO_DEVICE_TYPE}" ] || [ "${PIXOO_DEVICE_TYPE}" = "null" ]; then
+        PIXOO_DEVICE_TYPE="pixoo"
+    fi
+    if [ -z "${PIXOO_SCREEN_SIZE}" ] || [ "${PIXOO_SCREEN_SIZE}" = "null" ]; then
+        PIXOO_SCREEN_SIZE="64"
+    fi
+    if [ -z "${PIXOO_DEBUG}" ] || [ "${PIXOO_DEBUG}" = "null" ]; then
+        PIXOO_DEBUG="false"
+    fi
+    if [ -z "${PIXOO_CONNECTION_RETRIES}" ] || [ "${PIXOO_CONNECTION_RETRIES}" = "null" ]; then
+        PIXOO_CONNECTION_RETRIES="10"
+    fi
 fi
 
 echo "Configuration:"

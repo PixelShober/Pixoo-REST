@@ -16,15 +16,15 @@ if [ -z "${PIXOO_DEVICE_TYPE}" ]; then
     PIXOO_DEVICE_TYPE="auto"
 fi
 
-if [ -z "${PIXOO_SCREEN_SIZE}" ]; then
+if [ -z "${PIXOO_SCREEN_SIZE}" ] || [ "${PIXOO_SCREEN_SIZE}" = "null" ]; then
     PIXOO_SCREEN_SIZE="64"
 fi
 
-if [ -z "${PIXOO_DEBUG}" ]; then
+if [ -z "${PIXOO_DEBUG}" ] || [ "${PIXOO_DEBUG}" = "null" ]; then
     PIXOO_DEBUG="false"
 fi
 
-if [ -z "${PIXOO_CONNECTION_RETRIES}" ]; then
+if [ -z "${PIXOO_CONNECTION_RETRIES}" ] || [ "${PIXOO_CONNECTION_RETRIES}" = "null" ]; then
     PIXOO_CONNECTION_RETRIES="10"
 fi
 
@@ -62,6 +62,11 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
     USED_HOSTS=()
     USED_KEYS=()
     INDEX=0
+    FIRST_HOST=""
+    FIRST_DEVICE_TYPE=""
+    FIRST_SCREEN_SIZE=""
+    FIRST_DEBUG=""
+    FIRST_RETRIES=""
 
     for device in $(echo "${DEVICE_LIST_JSON}" | jq -c '.[]'); do
         name=$(echo "${device}" | jq -r '.name // empty')
@@ -72,18 +77,18 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
         debug=$(echo "${device}" | jq -r '.debug // empty')
         retries=$(echo "${device}" | jq -r '.connection_retries // empty')
 
-        if [ -z "${screen_size}" ]; then
+        if [ -z "${screen_size}" ] || [ "${screen_size}" = "null" ]; then
             screen_size="${PIXOO_SCREEN_SIZE}"
         fi
         if ! [[ "${screen_size}" =~ ^[0-9]+$ ]]; then
             screen_size="64"
         fi
 
-        if [ -z "${debug}" ]; then
+        if [ -z "${debug}" ] || [ "${debug}" = "null" ]; then
             debug="${PIXOO_DEBUG}"
         fi
 
-        if [ -z "${retries}" ]; then
+        if [ -z "${retries}" ] || [ "${retries}" = "null" ]; then
             retries="${PIXOO_CONNECTION_RETRIES}"
         fi
         if ! [[ "${retries}" =~ ^[0-9]+$ ]]; then
@@ -104,7 +109,7 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
             fi
 
             if [ -n "${name}" ]; then
-                host=$(echo "${DISCOVERY_RESULT}" | jq -r --arg name "${name}" '.DeviceList[] | select((.DeviceName // "" | ascii_downcase) == ($name | ascii_downcase)) | .DevicePrivateIP' | head -n1)
+                host=$(echo "${DISCOVERY_RESULT}" | jq -r --arg name "${name}" '.DeviceList[] | select((.DeviceName // "" | ascii_downcase | gsub("[ _-]";"")) == ($name | ascii_downcase | gsub("[ _-]";""))) | .DevicePrivateIP' | head -n1)
             fi
 
             if [ -z "${host}" ] || [ "${host}" = "null" ]; then
@@ -179,16 +184,29 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
             '$devices + [{"key":$key,"name":$name,"host":$host,"device_type":$device_type,"screen_size":($screen_size|tonumber? // 64),"debug":($debug == "true"),"connection_retries":($connection_retries|tonumber? // 10)}]'
         )
 
+        if [ -z "${FIRST_HOST}" ]; then
+            FIRST_HOST="${host}"
+            FIRST_DEVICE_TYPE="${device_type}"
+            FIRST_SCREEN_SIZE="${screen_size}"
+            FIRST_DEBUG="${debug}"
+            FIRST_RETRIES="${retries}"
+        fi
+
         INDEX=$((INDEX + 1))
     done
 
+    if [ -z "${FIRST_HOST}" ]; then
+        bashio::log.error "No valid devices found in PIXOO_DEVICES configuration"
+        exit 1
+    fi
+
     export PIXOO_DEVICES_JSON="${DEVICES_JSON}"
 
-    PIXOO_HOST=$(echo "${DEVICES_JSON}" | jq -r '.[0].host')
-    PIXOO_DEVICE_TYPE=$(echo "${DEVICES_JSON}" | jq -r '.[0].device_type // "pixoo"')
-    PIXOO_SCREEN_SIZE=$(echo "${DEVICES_JSON}" | jq -r '.[0].screen_size // 64')
-    PIXOO_DEBUG=$(echo "${DEVICES_JSON}" | jq -r '.[0].debug // false')
-    PIXOO_CONNECTION_RETRIES=$(echo "${DEVICES_JSON}" | jq -r '.[0].connection_retries // 10')
+    PIXOO_HOST="${FIRST_HOST}"
+    PIXOO_DEVICE_TYPE="${FIRST_DEVICE_TYPE}"
+    PIXOO_SCREEN_SIZE="${FIRST_SCREEN_SIZE}"
+    PIXOO_DEBUG="${FIRST_DEBUG}"
+    PIXOO_CONNECTION_RETRIES="${FIRST_RETRIES}"
 
     export PIXOO_HOST
     export PIXOO_DEVICE_TYPE
