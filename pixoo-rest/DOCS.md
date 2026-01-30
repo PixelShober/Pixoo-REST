@@ -199,7 +199,7 @@ No authentication is required. The API is accessible on your local network.
 
 ### Selecting a Device
 
-When multiple devices are configured, pass `?device=<name>` or `?host=<ip>` to any endpoint to target a specific device. You can also send `X-Pixoo-Device` or `X-Pixoo-Host` headers. If omitted, the first device in `PIXOO_DEVICES` is used.
+When multiple devices are configured, pass `?device=<name>` or `?host=<ip>` to any endpoint to target a specific device. If omitted, the first device in `PIXOO_DEVICES` is used.
 
 ### Common Endpoints
 
@@ -387,7 +387,7 @@ rest_command:
       } | tojson }}
 ```
 
-If you omit `device`, the first entry in `PIXOO_DEVICES` is used. You can also target by IP with `?host=...` or send headers `X-Pixoo-Device` / `X-Pixoo-Host`.
+If you omit `device`, the first entry in `PIXOO_DEVICES` is used. You can also target by IP with `?host=...`.
 
 Developer Tools example data for `rest_command.timegate_play_gif`:
 

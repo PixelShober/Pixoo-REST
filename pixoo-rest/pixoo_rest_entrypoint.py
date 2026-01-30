@@ -3,7 +3,8 @@
 import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Header, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import RedirectResponse
 from pixoo import Pixoo
 
@@ -43,15 +44,13 @@ def _root_path_from_headers(headers):
 def _resolve_device_selector(
     device: str | None,
     host: str | None,
-    header_device: str | None,
-    header_host: str | None,
 ):
     try:
         registry = get_device_registry()
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
-    device_key = device or header_device
-    host_value = host or header_host
+    device_key = device
+    host_value = host
     selected = registry.select(device_key, host_value)
     if selected is None:
         available = ", ".join(registry.keys()) or "none"
@@ -72,10 +71,8 @@ def get_pixoo_for_request(
         None,
         description="Device host/IP to target (overrides default device).",
     ),
-    x_pixoo_device: str | None = Header(None, alias="X-Pixoo-Device"),
-    x_pixoo_host: str | None = Header(None, alias="X-Pixoo-Host"),
 ) -> Pixoo:
-    selected = _resolve_device_selector(device, host, x_pixoo_device, x_pixoo_host)
+    selected = _resolve_device_selector(device, host)
     if selected.device_type != "pixoo":
         raise HTTPException(
             status_code=400,
@@ -159,6 +156,49 @@ pixoo_app.include_router(divoom.router)
 pixoo_app.include_router(timegate_router)
 pixoo_app.dependency_overrides[get_pixoo] = get_pixoo_for_request
 
+
+def custom_openapi():
+    if pixoo_app.openapi_schema:
+        return pixoo_app.openapi_schema
+
+    schema = get_openapi(
+        title=pixoo_app.title,
+        version=pixoo_app.version,
+        description=pixoo_app.description,
+        routes=pixoo_app.routes,
+    )
+
+    device_param = {
+        "name": "device",
+        "in": "query",
+        "required": False,
+        "schema": {"type": "string", "nullable": True},
+        "description": "Device alias configured in the add-on (defaults to first device).",
+    }
+    host_param = {
+        "name": "host",
+        "in": "query",
+        "required": False,
+        "schema": {"type": "string", "nullable": True},
+        "description": "Device host/IP to target (overrides default device).",
+    }
+
+    for path_item in schema.get("paths", {}).values():
+        for operation in path_item.values():
+            if not isinstance(operation, dict):
+                continue
+            params = operation.get("parameters", [])
+            if not any(p.get("in") == "query" and p.get("name") == "device" for p in params):
+                params.append(device_param)
+            if not any(p.get("in") == "query" and p.get("name") == "host" for p in params):
+                params.append(host_param)
+            operation["parameters"] = params
+
+    pixoo_app.openapi_schema = schema
+    return pixoo_app.openapi_schema
+
+
+pixoo_app.openapi = custom_openapi
 
 @pixoo_app.get("/health", response_model=HealthCheckResponse)
 async def health_check() -> HealthCheckResponse:

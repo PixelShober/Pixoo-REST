@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from pixoo_rest.models.requests import DivoomApiResponse
@@ -23,7 +23,6 @@ def _validate_lcd_array(lcd_array: list[int]) -> list[int]:
 
 
 def _select_timegate_device(
-    request: Request,
     device: str | None = Query(
         None,
         description="Device alias configured in the add-on (defaults to first device).",
@@ -32,15 +31,13 @@ def _select_timegate_device(
         None,
         description="Device host/IP to target (overrides default device).",
     ),
-    x_pixoo_device: str | None = Header(None, alias="X-Pixoo-Device"),
-    x_pixoo_host: str | None = Header(None, alias="X-Pixoo-Host"),
 ):
     try:
         registry = get_device_registry()
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
-    device_key = device or x_pixoo_device
-    host_value = host or x_pixoo_host
+    device_key = device
+    host_value = host
     selected = registry.select(device_key, host_value)
     if selected is None:
         available = ", ".join(registry.keys()) or "none"

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.14] - 2026-01-29
+
+### Changed
+- Remove header-based device selection; Swagger now shows device/host query params on all endpoints
+
 ## [2.0.13] - 2026-01-29
 
 ### Added

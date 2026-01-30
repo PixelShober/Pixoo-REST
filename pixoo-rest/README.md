@@ -175,7 +175,7 @@ color: "#00FF00"
 font: 3
 ```
 
-If you omit `device`, the first entry in `PIXOO_DEVICES` is used. You can also target by IP with `?host=...` or send headers `X-Pixoo-Device` / `X-Pixoo-Host`.
+If you omit `device`, the first entry in `PIXOO_DEVICES` is used. You can also target by IP with `?host=...`.
 
 ### Home Assistant REST Commands (Time Gate)
 
@@ -277,5 +277,5 @@ MIT License - see [LICENSE](../LICENSE) for details.
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
 [license-shield]: https://img.shields.io/github/license/PixelShober/Pixoo-REST.svg
-[release-shield]: https://img.shields.io/badge/version-2.0.13-blue.svg
-[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.13
+[release-shield]: https://img.shields.io/badge/version-2.0.14-blue.svg
+[release]: https://github.com/PixelShober/Pixoo-REST/releases/tag/v2.0.14
