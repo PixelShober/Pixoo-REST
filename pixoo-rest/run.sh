@@ -172,8 +172,7 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
         USED_KEYS+=("${key}")
         USED_HOSTS+=("${host}")
 
-        DEVICES_JSON=$(jq -c \
-            --argjson devices "${DEVICES_JSON}" \
+        if ! DEVICES_JSON=$(echo "${DEVICES_JSON}" | jq -c \
             --arg key "${key}" \
             --arg name "${name}" \
             --arg host "${host}" \
@@ -181,8 +180,10 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
             --arg screen_size "${screen_size}" \
             --arg debug "${debug}" \
             --arg connection_retries "${retries}" \
-            '$devices + [{"key":$key,"name":$name,"host":$host,"device_type":$device_type,"screen_size":($screen_size|tonumber? // 64),"debug":($debug == "true"),"connection_retries":($connection_retries|tonumber? // 10)}]'
-        )
+            '. + [{"key":$key,"name":$name,"host":$host,"device_type":$device_type,"screen_size":($screen_size|tonumber? // 64),"debug":($debug == "true"),"connection_retries":($connection_retries|tonumber? // 10)}]'); then
+            bashio::log.error "Failed to build device list JSON from PIXOO_DEVICES"
+            exit 1
+        fi
 
         if [ -z "${FIRST_HOST}" ]; then
             FIRST_HOST="${host}"
