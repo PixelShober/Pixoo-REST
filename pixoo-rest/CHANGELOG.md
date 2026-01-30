@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.15] - 2026-01-29
+
+### Changed
+- Added add-on description examples for brightness, GIF, and text REST commands
+- Expanded Home Assistant REST command examples in documentation
+
+## [2.0.14] - 2026-01-29
+
+### Changed
+- Remove header-based device selection; Swagger now shows device/host query params on all endpoints
+
+## [2.0.13] - 2026-01-29
+
+### Added
+- Multi-device configuration support for the Home Assistant add-on
+- Per-request device selection via query parameter or headers for Pixoo and Time Gate endpoints
+
+### Changed
+- Documentation updated with multi-device examples and rest_command targeting
+
+## [2.0.12] - 2026-01-27
+
+### Changed
+- Updated Time Gate examples in add-on docs with parameterized REST commands and Developer Tools payload samples
+
 ## [2.0.11] - 2026-01-26
 
 ### Added

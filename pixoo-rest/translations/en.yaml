@@ -1,4 +1,7 @@
 configuration:
+  PIXOO_DEVICES:
+    name: Devices
+    description: Configure multiple devices. When set, the single-device options below are used only as defaults.
   PIXOO_HOST_AUTO:
     name: Automatic Device Discovery
     description: Automatically discover Pixoo device on the local network using Divoom cloud API. If disabled, you must provide a manual IP address.

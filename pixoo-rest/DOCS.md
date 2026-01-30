@@ -22,6 +22,7 @@ The Pixoo REST add-on provides a RESTful API to control Divoom Pixoo LED display
 - Display sensor data and visualizations
 - Create countdown timers and stopwatches
 - Play animations and effects
+- Configure and target multiple Pixoo/Time Gate devices
 
 ## Installation
 
@@ -83,6 +84,25 @@ PIXOO_DEVICE_TYPE: time_gate
 PIXOO_SCREEN_SIZE: 128
 ```
 
+### Multiple Devices Configuration
+
+Use the add-on UI to add devices. Each entry can have its own auto-detect, IP, type, and screen size.
+If `PIXOO_DEVICES` is set, the single-device options are used only as defaults.
+For auto-detect, set `name` to the device name shown by Divoom so the correct IP is selected.
+
+```yaml
+PIXOO_DEVICES:
+  - name: office
+    host_auto: false
+    host: "192.168.1.100"
+    device_type: pixoo
+    screen_size: 64
+  - name: hallway
+    host_auto: true
+    device_type: auto
+    screen_size: 128
+```
+
 ### Complete Configuration Example
 
 ```yaml
@@ -96,6 +116,13 @@ PIXOO_REST_DEBUG: true
 ```
 
 ### Configuration Options Reference
+
+#### PIXOO_DEVICES
+
+- **Type:** List
+- **Default:** `[]`
+- **Description:** Configure multiple devices. When set, the single-device options below are used only as defaults.
+- **Fields:** `name`, `host_auto`, `host`, `device_type`, `screen_size`, `debug`, `connection_retries`
 
 #### PIXOO_HOST_AUTO
 
@@ -170,6 +197,10 @@ Interactive Swagger documentation: `http://homeassistant.local:5000/docs#/`
 
 No authentication is required. The API is accessible on your local network.
 
+### Selecting a Device
+
+When multiple devices are configured, pass `?device=<name>` or `?host=<ip>` to any endpoint to target a specific device. If omitted, the first device in `PIXOO_DEVICES` is used.
+
 ### Common Endpoints
 
 #### Display Text
@@ -201,19 +232,34 @@ curl -X POST http://homeassistant.local:5000/device/image/url \
   }'
 ```
 
-#### Time Gate: Send GIF Frame
+#### Time Gate: Play GIF (URL)
 
 ```bash
-curl -X POST http://homeassistant.local:5000/timegate/send-gif \
+curl -X POST http://homeassistant.local:5000/timegate/play-gif \
   -H "Content-Type: application/json" \
   -d '{
-    "lcd_array": [1,1,1,1,1],
-    "pic_num": 1,
-    "pic_width": 128,
-    "pic_offset": 0,
-    "pic_id": 1,
-    "pic_speed": 1000,
-    "pic_data": "<base64-jpg>"
+    "lcd_array": [0,0,0,1,0],
+    "file_name": ["http://f.divoom-gz.com/128_128.gif"]
+  }'
+```
+
+#### Time Gate: Send Text
+
+```bash
+curl -X POST http://homeassistant.local:5000/timegate/send-text \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lcd_index": 4,
+    "text_id": 1,
+    "x": 0,
+    "y": 40,
+    "direction": 0,
+    "font": 4,
+    "text_width": 56,
+    "text": "Hallo",
+    "speed": 10,
+    "color": "#FFFF00",
+    "align": 1
   }'
 ```
 
@@ -268,12 +314,12 @@ Error responses:
 
 ### REST Commands
 
-Add these to your `configuration.yaml`:
+Add these to your `configuration.yaml`. The Time Gate payloads and URL are parameterized so you can change them in **Developer Tools -> Services**:
 
 ```yaml
 rest_command:
   pixoo_text:
-    url: http://homeassistant.local:5000/device/text
+    url: http://homeassistant.local:5000/device/text?device={{ device }}
     method: POST
     headers:
       Content-Type: application/json
@@ -286,7 +332,7 @@ rest_command:
       }
   
   pixoo_brightness:
-    url: http://homeassistant.local:5000/device/brightness
+    url: http://homeassistant.local:5000/device/brightness?device={{ device }}
     method: POST
     headers:
       Content-Type: application/json
@@ -296,7 +342,7 @@ rest_command:
       }
   
   pixoo_image_url:
-    url: http://homeassistant.local:5000/device/image/url
+    url: http://homeassistant.local:5000/device/image/url?device={{ device }}
     method: POST
     headers:
       Content-Type: application/json
@@ -306,39 +352,96 @@ rest_command:
       }
   
   pixoo_clear:
-    url: http://homeassistant.local:5000/device/screen/clear
+    url: http://homeassistant.local:5000/device/screen/clear?device={{ device }}
     method: POST
   
   timegate_play_gif:
-    url: http://homeassistant.local:5000/timegate/play-gif
+    url: "http://{{ host }}:5000/timegate/play-gif?device={{ device }}"
     method: POST
     headers:
       Content-Type: application/json
     payload: >
-      {
-        "lcd_array": [0,0,0,0,1],
-        "file_name": ["http://f.divoom-gz.com/128_128.gif"]
-      }
+      {{ {
+        "lcd_array": lcd_array,
+        "file_name": file_name
+      } | tojson }}
   
   timegate_send_text:
-    url: http://homeassistant.local:5000/timegate/send-text
+    url: "http://{{ host }}:5000/timegate/send-text?device={{ device }}"
     method: POST
     headers:
       Content-Type: application/json
     payload: >
-      {
-        "lcd_index": 4,
-        "text_id": 1,
-        "x": 0,
-        "y": 40,
-        "direction": 0,
-        "font": 4,
-        "text_width": 56,
-        "text": "{{ text }}",
-        "speed": 10,
-        "color": "#FFFF00",
-        "align": 1
-      }
+      {{ {
+        "lcd_index": lcd_index,
+        "text_id": text_id,
+        "x": x,
+        "y": y,
+        "direction": direction,
+        "font": font,
+        "text_width": text_width,
+        "text": text,
+        "speed": speed,
+        "color": color,
+        "align": align
+      } | tojson }}
+```
+
+If you omit `device`, the first entry in `PIXOO_DEVICES` is used. You can also target by IP with `?host=...`.
+
+Developer Tools example data for `rest_command.pixoo_text`:
+
+```yaml
+host: 192.168.178.165
+device: office
+text: "Hello from Home Assistant"
+position: 0
+color: "#00FF00"
+font: 3
+```
+
+Developer Tools example data for `rest_command.pixoo_brightness`:
+
+```yaml
+host: 192.168.178.165
+device: office
+brightness: 35
+```
+
+Developer Tools example data for `rest_command.pixoo_image_url` (GIF):
+
+```yaml
+host: 192.168.178.165
+device: office
+url: "https://example.com/animation.gif"
+```
+
+Developer Tools example data for `rest_command.timegate_play_gif`:
+
+```yaml
+host: 192.168.178.165
+device: hallway
+lcd_array: [0,0,0,1,0]
+file_name:
+  - "http://f.divoom-gz.com/128_128.gif"
+```
+
+Developer Tools example data for `rest_command.timegate_send_text`:
+
+```yaml
+host: 192.168.178.165
+device: hallway
+lcd_index: 4
+text_id: 1
+x: 0
+y: 40
+direction: 0
+font: 4
+text_width: 56
+text: "Hallo"
+speed: 10
+color: "#FFFF00"
+align: 1
 ```
 
 Note: Time Gate text requires an active animation layer. Call `timegate_play_gif` first, then `timegate_send_text`.
