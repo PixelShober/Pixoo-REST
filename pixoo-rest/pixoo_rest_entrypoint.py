@@ -61,6 +61,34 @@ def _resolve_device_selector(
     return selected
 
 
+def _connect_pixoo_device(selected) -> bool:
+    if selected.pixoo is not None:
+        return True
+
+    print(f"Connecting to Pixoo device '{selected.key}' at {selected.host}...")
+    for connection_test_count in range(selected.connection_retries + 1):
+        if utils.try_to_request(f"http://{selected.host}/get"):
+            selected.pixoo = Pixoo(
+                selected.host,
+                selected.screen_size,
+                selected.debug,
+            )
+            print(
+                f"Successfully connected to Pixoo device '{selected.key}' at {selected.host}"
+            )
+            return True
+        if connection_test_count == selected.connection_retries:
+            print(
+                f"WARNING: Failed to connect to Pixoo device '{selected.key}' at {selected.host}. "
+                "The API will stay up and retry when the device is requested."
+            )
+            return False
+        print(
+            f"Connection attempt {connection_test_count + 1} failed for {selected.host}, retrying..."
+        )
+    return False
+
+
 def get_pixoo_for_request(
     request: Request,
     device: str | None = Query(
@@ -78,8 +106,11 @@ def get_pixoo_for_request(
             status_code=400,
             detail=f"Device '{selected.key}' is configured as {selected.device_type}.",
         )
-    if selected.pixoo is None:
-        raise HTTPException(status_code=503, detail="Pixoo device not initialized")
+    if not _connect_pixoo_device(selected):
+        raise HTTPException(
+            status_code=503,
+            detail=f"Pixoo device '{selected.key}' at {selected.host} is currently unreachable.",
+        )
     return selected.pixoo
 
 
@@ -94,6 +125,7 @@ async def lifespan(app: FastAPI):
 
     print("Initializing Pixoo REST devices...")
     default_pixoo = None
+    pixoo_device_count = 0
 
     for device in registry.devices:
         device.device_type = normalize_device_type(device.device_type)
@@ -111,26 +143,20 @@ async def lifespan(app: FastAPI):
             )
             continue
 
-        print(f"Connecting to Pixoo device '{device.key}' at {device.host}...")
-        for connection_test_count in range(device.connection_retries + 1):
-            if utils.try_to_request(f"http://{device.host}/get"):
-                break
-            if connection_test_count == device.connection_retries:
-                sys.exit(
-                    f"ERROR: Failed to connect to Pixoo device '{device.key}' at {device.host}."
-                )
-            print(
-                f"Connection attempt {connection_test_count + 1} failed for {device.host}, retrying..."
-            )
-
-        device.pixoo = Pixoo(device.host, device.screen_size, device.debug)
-        print(f"Successfully connected to Pixoo device '{device.key}' at {device.host}")
+        pixoo_device_count += 1
+        if not _connect_pixoo_device(device):
+            continue
 
         if default_pixoo is None:
             default_pixoo = device.pixoo
 
     if default_pixoo is not None:
         set_pixoo_instance(default_pixoo)
+    elif pixoo_device_count > 0:
+        print(
+            "WARNING: No Pixoo devices were reachable during startup. "
+            "The API will continue running and retry on demand."
+        )
 
     yield
 

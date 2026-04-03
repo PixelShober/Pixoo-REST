@@ -68,7 +68,8 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
     FIRST_DEBUG=""
     FIRST_RETRIES=""
 
-    for device in $(echo "${DEVICE_LIST_JSON}" | jq -c '.[]'); do
+    while IFS= read -r device; do
+        [ -z "${device}" ] && continue
         name=$(echo "${device}" | jq -r '.name // empty')
         host_auto=$(echo "${device}" | jq -r '.host_auto // false')
         host=$(echo "${device}" | jq -r '.host // empty')
@@ -113,12 +114,13 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
             fi
 
             if [ -z "${host}" ] || [ "${host}" = "null" ]; then
-                for candidate in $(echo "${DISCOVERY_RESULT}" | jq -r '.DeviceList[].DevicePrivateIP'); do
+                while IFS= read -r candidate; do
+                    [ -z "${candidate}" ] && continue
                     if ! printf '%s\n' "${USED_HOSTS[@]}" | grep -qx "${candidate}"; then
                         host="${candidate}"
                         break
                     fi
-                done
+                done < <(echo "${DISCOVERY_RESULT}" | jq -r '.DeviceList[].DevicePrivateIP')
             fi
 
             if [ -z "${host}" ] || [ "${host}" = "null" ]; then
@@ -194,7 +196,7 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
         fi
 
         INDEX=$((INDEX + 1))
-    done
+    done < <(echo "${DEVICE_LIST_JSON}" | jq -c '.[]')
 
     if [ -z "${FIRST_HOST}" ]; then
         bashio::log.error "No valid devices found in PIXOO_DEVICES configuration"
@@ -215,13 +217,14 @@ if [ "${DEVICE_COUNT}" -gt 0 ]; then
     export PIXOO_DEBUG
     export PIXOO_CONNECTION_RETRIES
 
-    for device in $(echo "${DEVICES_JSON}" | jq -c '.[]'); do
+    while IFS= read -r device; do
+        [ -z "${device}" ] && continue
         key=$(echo "${device}" | jq -r '.key')
         host=$(echo "${device}" | jq -r '.host')
         dtype=$(echo "${device}" | jq -r '.device_type')
         size=$(echo "${device}" | jq -r '.screen_size')
         bashio::log.info "Device '${key}': ${host} (${dtype}, ${size}px)"
-    done
+    done < <(echo "${DEVICES_JSON}" | jq -c '.[]')
 else
     # Device discovery and validation (single device)
     if [ "${PIXOO_HOST_AUTO}" = true ]; then

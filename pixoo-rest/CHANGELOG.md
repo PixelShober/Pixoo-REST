@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.16] - 2026-04-04
+
+### Fixed
+- Parse `PIXOO_DEVICES` entries safely even when device names contain spaces or special characters
+- Keep the add-on API running when a Pixoo device is temporarily unreachable, and retry initialization on demand
+
+### Changed
+- Enable host networking for more reliable LAN device connectivity from Home Assistant
 ## [2.0.15] - 2026-01-29
 
 ### Changed
