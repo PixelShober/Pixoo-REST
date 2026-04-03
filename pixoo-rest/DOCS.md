@@ -266,11 +266,7 @@ curl -X POST http://homeassistant.local:5000/timegate/send-text \
 #### Set Brightness
 
 ```bash
-curl -X POST http://homeassistant.local:5000/device/brightness \
-  -H "Content-Type: application/json" \
-  -d '{
-    "brightness": 75
-  }'
+curl -X PUT http://homeassistant.local:5000/set/brightness/75
 ```
 
 **Range:** 0-100
@@ -332,14 +328,8 @@ rest_command:
       }
   
   pixoo_brightness:
-    url: http://homeassistant.local:5000/device/brightness?device={{ device }}
-    method: POST
-    headers:
-      Content-Type: application/json
-    payload: >
-      {
-        "brightness": {{ brightness }}
-      }
+    url: http://{{ host }}:5000/set/brightness/{{ brightness }}?device={{ device }}
+    method: PUT
   
   pixoo_image_url:
     url: http://homeassistant.local:5000/device/image/url?device={{ device }}

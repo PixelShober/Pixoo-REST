@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.17] - 2026-04-04
+
+### Changed
+- Slimmed the add-on store description to a concise summary instead of embedding long examples
+- Updated Pixoo brightness documentation and Home Assistant examples to use the live `PUT /set/brightness/{percentage}` endpoint
+
 ## [2.0.16] - 2026-04-04
 
 ### Fixed

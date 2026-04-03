@@ -1,4 +1,4 @@
-# # Home Assistant Add-on: Pixoo REST
+# Home Assistant Add-on: Pixoo REST
 
 [![Release][release-shield]][release] [![License][license-shield]](LICENSE)
 
@@ -164,14 +164,8 @@ rest_command:
       } | tojson }}
 
   pixoo_brightness:
-    url: "http://{{ host }}:5000/device/brightness?device={{ device }}"
-    method: POST
-    headers:
-      Content-Type: application/json
-    payload: >
-      {{ {
-        "brightness": brightness
-      } | tojson }}
+    url: "http://{{ host }}:5000/set/brightness/{{ brightness }}?device={{ device }}"
+    method: PUT
 
   pixoo_gif:
     url: "http://{{ host }}:5000/device/image/url?device={{ device }}"
